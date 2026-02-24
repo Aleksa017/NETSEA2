@@ -20,6 +20,20 @@ if (!$utente) {
     die("Utente non trovato.");
 }
 
+// Post a cui l'utente ha messo like
+try {
+    $stmt_likes = $connessione->prepare("
+        SELECT m.*, u.nome AS nome_pub, u.cognome AS cognome_pub
+        FROM like_media lm
+        JOIN media m ON lm.id_post = m.id_post
+        LEFT JOIN utente u ON m.id_utente = u.id_utente
+        WHERE lm.id_utente = ?
+        ORDER BY m.data_pub DESC
+    ");
+    $stmt_likes->execute([$id_utente]);
+    $post_piaciuti = $stmt_likes->fetchAll();
+} catch (PDOException $e) { $post_piaciuti = []; }
+
 // Gestione aggiornamento profilo
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
@@ -202,6 +216,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 </div>
                 <button type="submit" class="btn">🔐 Cambia Password</button>
             </form>
+        </div>
+
+        <!-- POST PIACIUTI -->
+        <h2>❤️ Post che ti sono piaciuti</h2>
+        <div class="profile-card">
+          <?php if (empty($post_piaciuti)): ?>
+            <p style="color:var(--muted);font-size:.875rem;">Non hai ancora messo like a nessun contenuto. <a href="feed.php">Vai al feed →</a></p>
+          <?php else: ?>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.75rem;">
+            <?php foreach ($post_piaciuti as $lp):
+              $isImg = !empty($lp['url']) && preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $lp['url']);
+              $isVid = !empty($lp['url']) && preg_match('/\.(mp4|webm)$/i', $lp['url']);
+              $pub   = trim(($lp['nome_pub'] ?? '') . ' ' . ($lp['cognome_pub'] ?? '')) ?: 'NetSea';
+            ?>
+            <a href="feed.php" style="display:block;text-decoration:none;background:rgba(11,61,94,.3);border:1px solid rgba(114,215,240,.1);border-radius:12px;overflow:hidden;transition:border-color .2s,transform .2s;" onmouseover="this.style.borderColor='rgba(114,215,240,.3)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(114,215,240,.1)';this.style.transform='none'">
+              <div style="height:120px;background:linear-gradient(135deg,var(--ocean),var(--deep));display:flex;align-items:center;justify-content:center;font-size:3rem;position:relative;overflow:hidden;">
+                <?php if ($isImg): ?>
+                  <img src="<?= htmlspecialchars($lp['url']) ?>" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" alt="">
+                <?php elseif ($isVid): ?>
+                  <span>📹</span>
+                <?php else: ?>
+                  <span>🌊</span>
+                <?php endif; ?>
+              </div>
+              <div style="padding:.75rem;">
+                <p style="color:var(--pearl);font-size:.85rem;font-weight:500;line-height:1.3;margin-bottom:.3rem;"><?= htmlspecialchars(mb_substr($lp['titolo'] ?? '', 0, 50)) ?></p>
+                <p style="color:var(--muted);font-size:.72rem;">di <?= htmlspecialchars($pub) ?></p>
+              </div>
+            </a>
+            <?php endforeach; ?>
+            </div>
+          <?php endif; ?>
         </div>
 
         <div>

@@ -790,9 +790,9 @@ $utente_loggato = isset($_SESSION['id']) ? [
   </a>
 
   <ul class="nav-links">
-    <li><a href="#news">News</a></li>
+    <li><a href="news.php">News</a></li>
     <li><a href="#donazioni">Donazioni</a></li>
-    <li><a href="#feed">Scopri</a></li>
+    <li><a href="feed.php">Scopri</a></li>
     <li><a href="Specie.php">Specie</a></li>
     <li><a href="Luoghi.php">Luoghi</a></li>
   </ul>
@@ -853,7 +853,6 @@ $utente_loggato = isset($_SESSION['id']) ? [
           <a href="Registrazione.php" class="drop-btn drop-btn-secondary">✨ Crea account</a>
           <div class="drop-divider"></div>
           <a href="Registrazione.php?tipo=ricercatore" class="drop-link"><span class="icon">🔬</span> Richiedi account ricercatore</a>
-        </div>
       </div>
       <?php endif; ?>
     </div>
@@ -875,103 +874,88 @@ $utente_loggato = isset($_SESSION['id']) ? [
 <!-- ══════════════════════════════════════════
      HERO — NEWS CAROUSEL
 ══════════════════════════════════════════ -->
-<!-- PHP: $news = fetch last 10 news from DB -->
+<?php
+// Ultime 8 news dal DB
+$grads = [
+    'linear-gradient(135deg,#062040,#0a4060,#0b5575)',
+    'linear-gradient(135deg,#031a10,#0a3d20,#0d5530)',
+    'linear-gradient(135deg,#1a0f30,#2a1050,#1a0a40)',
+    'linear-gradient(135deg,#002020,#004040,#005550)',
+    'linear-gradient(135deg,#200a00,#401500,#502010)',
+    'linear-gradient(135deg,#0a0a30,#101060,#0a0a50)',
+    'linear-gradient(135deg,#062040,#0a4060,#0b5575)',
+    'linear-gradient(135deg,#031a10,#0a3d20,#0d5530)',
+];
+$emojis = ['🌊','🪸','🦑','🐋','🧫','🔬','🐟','🌿'];
+try {
+    $stmt_news_car = $connessione->query("
+        SELECT n.id_news, n.titolo, n.contenuto, n.copertina, n.data_pub,
+               u.nome AS nome_autore, u.cognome AS cognome_autore, r.qualifica
+        FROM news n
+        JOIN ricercatore r ON n.id_ricercatore = r.id_ricercatore
+        JOIN utente u ON r.id_ricercatore = u.id_utente
+        ORDER BY n.data_pub DESC LIMIT 8
+    ");
+    $news_carousel = $stmt_news_car->fetchAll();
+} catch (PDOException $e) { $news_carousel = []; }
+?>
 <section class="hero" id="news">
   <div class="carousel-track" id="carouselTrack">
-
-    <!-- SLIDE 1 -->
-    <!-- PHP: foreach($news as $n): -->
+  <?php if (empty($news_carousel)): ?>
     <div class="slide">
-      <div class="slide-bg" style="background: linear-gradient(135deg, #062040 0%, #0a4060 40%, #0b5575 100%);">
-        <!-- real: background-image: url('<?= $n['copertina'] ?>')  -->
+      <div class="slide-bg" style="background:linear-gradient(135deg,#062040,#0b5575);">
         <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding-right:20%;font-size:12rem;opacity:.15;user-select:none;">🌊</div>
       </div>
       <div class="slide-content">
-        <span class="slide-tag">🌡️ Clima</span>
-        <h1 class="slide-title">Temperatura degli oceani raggiunge il record storico nel 2024</h1>
-        <p class="slide-desc">I ricercatori confermano un aumento di 0.3°C rispetto alla media del secolo. Le conseguenze per la biodiversità marina potrebbero essere irreversibili.</p>
-        <p class="slide-author">Di <span>Dr. Maria Ferretti</span> · CNR-ISMAR · 15 Feb 2025</p>
-        <a href="news.php?id=1" class="slide-btn">Leggi l'articolo →</a>
+        <span class="slide-tag">📰 News</span>
+        <h1 class="slide-title">Benvenuto su NetSea</h1>
+        <p class="slide-desc">Le news pubblicate dai ricercatori verificati appariranno qui.</p>
+        <a href="news.php" class="slide-btn">Vai alle news →</a>
       </div>
     </div>
-
-    <div class="slide">
-      <div class="slide-bg" style="background: linear-gradient(135deg, #031a10 0%, #0a3d20 40%, #0d5530 100%);">
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding-right:20%;font-size:12rem;opacity:.12;user-select:none;">🪸</div>
-      </div>
-      <div class="slide-content">
-        <span class="slide-tag">🪸 Coralli</span>
-        <h1 class="slide-title">Sbiancamento di massa: il 60% della Grande Barriera Corallina colpita</h1>
-        <p class="slide-desc">La quarta ondata di sbiancamento massiccio in 8 anni ha investito le barriere coralline australiane. I biologi parlano di punto di non ritorno.</p>
-        <p class="slide-author">Di <span>Prof. James Cook</span> · Univ. Queensland · 12 Feb 2025</p>
-        <a href="news.php?id=2" class="slide-btn">Leggi l'articolo →</a>
-      </div>
+  <?php else: ?>
+  <?php foreach ($news_carousel as $i => $nc):
+    $grad  = $grads[$i % count($grads)];
+    $emoji = $emojis[$i % count($emojis)];
+    $autore_nc = trim(($nc['nome_autore'] ?? '') . ' ' . ($nc['cognome_autore'] ?? ''));
+    $data_nc = $nc['data_pub'] ? date('d M Y', strtotime($nc['data_pub'])) : '';
+    $desc_nc = mb_substr(strip_tags($nc['contenuto'] ?? ''), 0, 160);
+    $hasCover = !empty($nc['copertina']) && preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $nc['copertina']);
+  ?>
+  <div class="slide">
+    <div class="slide-bg" style="background:<?= $grad ?>;">
+      <?php if ($hasCover): ?>
+        <img src="<?= htmlspecialchars($nc['copertina']) ?>" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.4;">
+      <?php endif; ?>
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding-right:20%;font-size:12rem;opacity:.12;user-select:none;"><?= $emoji ?></div>
     </div>
-
-    <div class="slide">
-      <div class="slide-bg" style="background: linear-gradient(135deg, #1a0f30 0%, #2a1050 40%, #1a0a40 100%);">
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding-right:20%;font-size:12rem;opacity:.12;user-select:none;">🦑</div>
-      </div>
-      <div class="slide-content">
-        <span class="slide-tag">🔬 Scoperta</span>
-        <h1 class="slide-title">Nuova specie di cefalopode bioluminescente scoperta nel Mar Ionio</h1>
-        <p class="slide-desc">Il team del CNR-ISMAR ha identificato nelle profondità ioniche una specie di polpo mai catalogata prima, capace di emettere luce blu-verde.</p>
-        <p class="slide-author">Di <span>Dr.ssa Lucia Romano</span> · CNR-ISMAR · 8 Feb 2025</p>
-        <a href="news.php?id=3" class="slide-btn">Leggi l'articolo →</a>
-      </div>
+    <div class="slide-content">
+      <span class="slide-tag">📰 News</span>
+      <h1 class="slide-title"><?= htmlspecialchars($nc['titolo']) ?></h1>
+      <p class="slide-desc"><?= htmlspecialchars($desc_nc) ?>…</p>
+      <p class="slide-author">Di <span><?= htmlspecialchars($autore_nc) ?></span><?= $nc['qualifica'] ? ' · ' . htmlspecialchars($nc['qualifica']) : '' ?><?= $data_nc ? ' · ' . $data_nc : '' ?></p>
+      <a href="news_detail.php?id=<?= $nc['id_news'] ?>" class="slide-btn">Leggi l'articolo →</a>
     </div>
-
-    <div class="slide">
-      <div class="slide-bg" style="background: linear-gradient(135deg, #002020 0%, #004040 40%, #005550 100%);">
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding-right:20%;font-size:12rem;opacity:.12;user-select:none;">🐋</div>
-      </div>
-      <div class="slide-content">
-        <span class="slide-tag">💚 Conservazione</span>
-        <h1 class="slide-title">La popolazione di balene azzurre mostra segni di ripresa nell'Atlantico</h1>
-        <p class="slide-desc">Dopo decenni di caccia intensiva, il censimento 2024 rivela un aumento del 12% degli esemplari nel Nord Atlantico: una rara buona notizia per gli oceani.</p>
-        <p class="slide-author">Di <span>Dr. Marco Bianchi</span> · OGS Trieste · 3 Feb 2025</p>
-        <a href="news.php?id=4" class="slide-btn">Leggi l'articolo →</a>
-      </div>
-    </div>
-
-    <div class="slide">
-      <div class="slide-bg" style="background: linear-gradient(135deg, #200a00 0%, #401500 40%, #502010 100%);">
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding-right:20%;font-size:12rem;opacity:.12;user-select:none;">🧫</div>
-      </div>
-      <div class="slide-content">
-        <span class="slide-tag">⚠️ Inquinamento</span>
-        <h1 class="slide-title">Microplastiche rilevate nel sangue di cetacei del Mediterraneo</h1>
-        <p class="slide-desc">Studio dell'Università di Palermo rileva concentrazioni preoccupanti di particelle di plastica in campioni ematici di delfini e balene del Tirreno.</p>
-        <p class="slide-author">Di <span>Prof.ssa Anna Greco</span> · Univ. Palermo · 28 Gen 2025</p>
-        <a href="news.php?id=5" class="slide-btn">Leggi l'articolo →</a>
-      </div>
-    </div>
-
-    <!-- Aggiungi altri 5 slide per arrivare a 10 totali -->
-    <div class="slide">
-      <div class="slide-bg" style="background: linear-gradient(135deg, #0a0a30 0%, #101060 40%, #0a0a50 100%);">
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding-right:20%;font-size:12rem;opacity:.12;user-select:none;">🌊</div>
-      </div>
-      <div class="slide-content">
-        <span class="slide-tag">🔬 Ricerca</span>
-        <h1 class="slide-title">Acidificazione degli oceani: impatti a cascata sulle catene alimentari marine</h1>
-        <p class="slide-desc">Il pH medio degli oceani è sceso di 0.1 unità rispetto all'era preindustriale. I modelli predicono effetti devastanti sulle catene trofiche entro il 2050.</p>
-        <p class="slide-author">Di <span>Dr. Carlo Esposito</span> · ISPRA · 22 Gen 2025</p>
-        <a href="news.php?id=6" class="slide-btn">Leggi l'articolo →</a>
-      </div>
-    </div>
-    <!-- PHP: endforeach; -->
-
+  </div>
+  <?php endforeach; ?>
+  <?php endif; ?>
   </div>
 
   <!-- STRIP THUMBNAILS RIGHT -->
   <div class="slide-strip" id="slideStrip">
-    <div class="strip-thumb active" data-idx="0">🌊</div>
-    <div class="strip-thumb" data-idx="1">🪸</div>
-    <div class="strip-thumb" data-idx="2">🦑</div>
-    <div class="strip-thumb" data-idx="3">🐋</div>
-    <div class="strip-thumb" data-idx="4">🧫</div>
-    <div class="strip-thumb" data-idx="5">🔬</div>
+    <?php
+    $emojis_strip = ['🌊','🪸','🦑','🐋','🧫','🔬','🐟','🌿'];
+    $tot = max(1, count($news_carousel));
+    for ($i = 0; $i < $tot; $i++):
+    ?>
+    <div class="strip-thumb <?= $i===0?'active':'' ?>" data-idx="<?= $i ?>">
+      <?= $emojis_strip[$i % count($emojis_strip)] ?>
+    </div>
+    <?php endfor; ?>
+    <!-- link alle news completo -->
+    <a href="news.php" style="display:flex;align-items:center;justify-content:center;margin-top:.5rem;padding:.4rem .7rem;border-radius:8px;background:rgba(27,159,212,.15);border:1px solid rgba(27,159,212,.3);color:#72d7f0;font-size:.72rem;font-family:'Outfit',sans-serif;text-decoration:none;gap:.3rem;transition:background .2s;" onmouseover="this.style.background='rgba(27,159,212,.3)'" onmouseout="this.style.background='rgba(27,159,212,.15)'">
+      Tutte →
+    </a>
   </div>
 
   <!-- ARROWS -->
@@ -996,24 +980,11 @@ $utente_loggato = isset($_SESSION['id']) ? [
        DONAZIONI
   ══════════════════════════════════════════ -->
   <?php
-  // carichiamo i progetti con somma delle donazioni
-  $stmt = $connessione->query("\n      SELECT p.*,\n             COALESCE(SUM(d.importo),0) AS raccolto\n      FROM progetto p\n      LEFT JOIN donazione d ON d.id_pd = p.id_pd\n      GROUP BY p.id_pd\n  ");
-  $progetti = $stmt->fetchAll();
-  // se l'id 3 non è presente nella tabella, inseriamo il progetto di default
-  $has3 = false;
-  foreach ($progetti as $p) {
-      if ((int)$p['id_pd'] === 3) { $has3 = true; break; }
-  }
-  if (!$has3) {
-      try {
-          $connessione->exec("INSERT IGNORE INTO progetto (id_pd, titolo, obiettivo, budget, stato, data_i) VALUES (3, 'Restauro Posidonia Adriatica', 'Reimpianto delle praterie di Posidonia oceanica lungo le coste adriatiche', 30000, 'urgente', '2026-02-10')");
-      } catch (PDOException $e) {
-          error_log("Unable to insert default project3: " . $e->getMessage());
-      }
-      // ricarichiamo dopo l'eventuale inserimento
-      $stmt = $connessione->query("\n          SELECT p.*,\n                 COALESCE(SUM(d.importo),0) AS raccolto\n          FROM progetto p\n          LEFT JOIN donazione d ON d.id_pd = p.id_pd\n          GROUP BY p.id_pd\n      ");
-      $progetti = $stmt->fetchAll();
-  }
+  // Ultimi 10 progetti, raccolto dal campo diretto
+  try {
+      $stmt_don = $connessione->query("SELECT * FROM progetto ORDER BY data_i DESC LIMIT 10");
+      $progetti = $stmt_don->fetchAll();
+  } catch (PDOException $e) { $progetti = []; }
   ?>
   <section class="donations-section" id="donazioni">
     <div class="container">
@@ -1023,48 +994,57 @@ $utente_loggato = isset($_SESSION['id']) ? [
           <h2 class="section-title">Progetti di Donazione</h2>
           <p class="section-sub">Finanzia direttamente la scienza che protegge i nostri oceani</p>
         </div>
-        <div>
-          <!-- Filters -->
-          <div class="donations-filters">
-            <button class="filter-chip active" onclick="filterDonations('all', this)">Tutti</button>
-            <button class="filter-chip" onclick="filterDonations('attivo', this)">Attivi</button>
-            <button class="filter-chip" onclick="filterDonations('completato', this)">Completati</button>
-            <button class="filter-chip" onclick="filterDonations('urgente', this)">Urgenti</button>
-          </div>
-        </div>
+        <a href="progetti.php" class="btn-outline" style="align-self:flex-start;">Vedi tutti →</a>
       </div>
 
       <div class="donation-grid" id="donationGrid">
+        <?php if (empty($progetti)): ?>
+          <p style="color:var(--muted);padding:2rem;">Nessun progetto disponibile.</p>
+        <?php else: ?>
         <?php
-        $icons = [1=>'🦭',2=>'🐬',3=>'🌿'];
+        $stati_icons = ['attivo'=>'🟢','urgente'=>'🔴','completato'=>'✅'];
+        $top_grads = [
+            'urgente'   => 'background:linear-gradient(135deg,#3d1a00,#1a0a00);',
+            'completato'=> 'background:linear-gradient(135deg,#0a2a0a,#0a3a1a);',
+            'attivo'    => 'background:linear-gradient(135deg,var(--ocean),var(--deep));',
+        ];
+        $badge_styles = [
+            'urgente'   => 'background:rgba(224,90,58,.2);color:#e8836a;border-color:rgba(224,90,58,.3);',
+            'completato'=> 'background:rgba(44,184,155,.15);color:#3dd4ae;border-color:rgba(44,184,155,.3);',
+            'attivo'    => 'background:rgba(44,184,155,.2);color:var(--kelp);border-color:rgba(44,184,155,.3);',
+        ];
         foreach($progetti as $p):
-            $stato = $p['stato'] ?? 'attivo';
-            $raccolto = floatval($p['raccolto']);
-            $budget = floatval($p['budget']);
-            $pct = $budget > 0 ? min(100, round($raccolto / $budget * 100)) : 0;
-            $icon = $icons[$p['id_pd']] ?? '🐬';
-            $topStyle = '';
-            $statusStyle = '';
-            if ($stato === 'urgente') {
-                $topStyle = 'background:linear-gradient(135deg,#3d1a00,#1a0a00);';
-                $statusStyle = 'background:rgba(224,90,58,.2);color:#e8836a;border-color:rgba(224,90,58,.3);';
-            }
-            $label = ucfirst($stato);
+            $stato    = strtolower($p['stato'] ?? 'attivo');
+            $raccolto = (float)($p['raccolto'] ?? 0);
+            $budget   = (float)($p['budget']   ?? 0);
+            $pct      = $budget > 0 ? min(100, round($raccolto / $budget * 100)) : 0;
+            $s_icon   = $stati_icons[$stato] ?? '🟢';
+            $top_grad = $top_grads[$stato] ?? $top_grads['attivo'];
+            $badge_s  = $badge_styles[$stato] ?? $badge_styles['attivo'];
+            $label    = ucfirst($stato);
         ?>
-        <div class="donation-card" data-stato="<?= htmlspecialchars($stato) ?>">
-          <div class="donation-card-top" style="<?= $topStyle ?>"><?= $icon ?><span class="donation-status" style="<?= $statusStyle ?>"><?= htmlspecialchars($label) ?></span></div>
+        <a href="progetto_detail.php?id=<?= $p['id_pd'] ?>" class="donation-card" data-stato="<?= htmlspecialchars($stato) ?>" style="display:block;text-decoration:none;">
+          <div class="donation-card-top" style="<?= $top_grad ?>">
+            🌊
+            <span class="donation-status" style="<?= $badge_s ?>"><?= $s_icon ?> <?= $label ?></span>
+          </div>
           <div class="donation-card-body">
             <h3><?= htmlspecialchars($p['titolo']) ?></h3>
-            <p><?= htmlspecialchars($p['obiettivo'] ?? '') ?></p>
+            <p><?= htmlspecialchars(mb_substr($p['obiettivo'] ?? '', 0, 100)) . (mb_strlen($p['obiettivo'] ?? '') > 100 ? '…' : '') ?></p>
             <div class="progress-bar"><div class="progress-fill" style="width:<?= $pct ?>%"></div></div>
-            <div class="progress-meta"><span><strong>€ <?= number_format($raccolto,0,',','.') ?></strong> raccolti</span><span>di € <?= number_format($budget,0,',','.') ?></span></div>
-            <a href="progetti.php?id=<?= $p['id_pd'] ?>" class="btn-solid" style="font-size:.82rem;padding:.5rem 1rem;">💚 Dona ora</a>
+            <div class="progress-meta">
+              <span><strong>€ <?= number_format($raccolto,0,',','.') ?></strong> raccolti</span>
+              <span>di € <?= number_format($budget,0,',','.') ?></span>
+            </div>
+            <span class="btn-solid" style="font-size:.82rem;padding:.5rem 1rem;display:inline-block;">💚 Scopri e dona</span>
           </div>
-        </div>
+        </a>
         <?php endforeach; ?>
+        <?php endif; ?>
+        </div>
       </div>
 
-      <div style="text-align:center;margin-top:2rem;">
+      <div style="text-align:center;margin-top:1.75rem;">
         <a href="progetti.php" class="btn-outline">Vedi tutti i progetti →</a>
       </div>
     </div>
@@ -1073,6 +1053,20 @@ $utente_loggato = isset($_SESSION['id']) ? [
   <!-- ══════════════════════════════════════════
        FEED — TikTok style
   ══════════════════════════════════════════ -->
+  <?php
+  // Ultimi 8 contenuti dal DB
+  try {
+      $feed_preview = $connessione->query("
+          SELECT m.*, u.nome, u.cognome,
+                 (SELECT COUNT(*) FROM like_media l WHERE l.id_post = m.id_post) AS like_count
+          FROM media m
+          LEFT JOIN utente u ON m.id_utente = u.id_utente
+          ORDER BY m.data_pub DESC LIMIT 8
+      ")->fetchAll();
+  } catch (PDOException $e) { $feed_preview = []; }
+  $grads_feed = ['linear-gradient(135deg,#041828,#0b3d5e)','linear-gradient(135deg,#002820,#005540)','linear-gradient(135deg,#200a20,#401040)','linear-gradient(135deg,#001830,#003060)','linear-gradient(135deg,#201000,#402000)','linear-gradient(135deg,#000820,#001540)','linear-gradient(135deg,#002010,#003020)','linear-gradient(135deg,#1a0f30,#2a1050)'];
+  $emojis_feed = ['🦈','🪸','🐙','🐬','🐠','🌊','🐢','🦑'];
+  ?>
   <section class="feed-section" id="feed">
     <div class="container">
       <div class="feed-header">
@@ -1084,72 +1078,70 @@ $utente_loggato = isset($_SESSION['id']) ? [
         <a href="feed.php" class="btn-outline">Vai al feed completo →</a>
       </div>
 
-      <!-- PHP: foreach($feed_items as $f): -->
       <div class="feed-scroll-track">
-        <div class="feed-card">
-          <div class="feed-card-bg">🦈</div>
-          <div class="feed-card-play">▶</div>
+      <?php if (empty($feed_preview)): ?>
+        <div class="feed-card" style="cursor:default;">
+          <div class="feed-card-bg">🌊</div>
           <div class="feed-card-overlay">
-            <p class="feed-card-type">📹 Video · 1:24</p>
-            <p class="feed-card-title">Squalo bianco nell'Arcipelago Toscano: avvistamento raro</p>
-            <p class="feed-card-author">Dr. Rossi M. · ISPRA</p>
+            <p class="feed-card-title">Nessun contenuto ancora</p>
           </div>
         </div>
-        <div class="feed-card">
-          <div class="feed-card-bg" style="background:linear-gradient(135deg,#002820,#005540);">🪸</div>
-          <div class="feed-card-overlay">
-            <p class="feed-card-type">📸 Foto</p>
-            <p class="feed-card-title">Biocenosi corallina a 40m — Baia di Capri</p>
-            <p class="feed-card-author">Dr.ssa Bianchi F. · CNR</p>
-          </div>
+      <?php else: ?>
+      <?php foreach ($feed_preview as $fi => $f):
+        $isImg_f = !empty($f['url']) && preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $f['url']);
+        $isVid_f = !empty($f['url']) && preg_match('/\.(mp4|webm)$/i', $f['url']);
+        $autore_f = trim(($f['nome']??'').' '.($f['cognome']??'')) ?: 'NetSea';
+        $grad_f   = $grads_feed[$fi % 8];
+        $emoji_f  = $emojis_feed[$fi % 8];
+        $tipo_f   = $isVid_f ? '📹 Video' : '📸 Foto';
+      ?>
+      <div class="feed-card"
+           style="cursor:pointer;"
+           data-id="<?= $f['id_post'] ?>"
+           data-titolo="<?= htmlspecialchars($f['titolo'], ENT_QUOTES) ?>"
+           data-desc="<?= htmlspecialchars($f['descrizione'] ?? '', ENT_QUOTES) ?>"
+           data-autore="<?= htmlspecialchars($autore_f, ENT_QUOTES) ?>"
+           data-url="<?= htmlspecialchars($f['url'] ?? '', ENT_QUOTES) ?>"
+           data-likes="<?= (int)$f['like_count'] ?>"
+           data-liked="0"
+           onclick="apriModalIndex(this)">
+        <div class="feed-card-bg" style="background:<?= $grad_f ?>;">
+          <?php if ($isImg_f): ?>
+            <img src="<?= htmlspecialchars($f['url']) ?>" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.75;border-radius:0;">
+          <?php else: ?><?= $emoji_f ?><?php endif; ?>
         </div>
-        <div class="feed-card">
-          <div class="feed-card-bg" style="background:linear-gradient(135deg,#200a20,#401040);">🐙</div>
-          <div class="feed-card-play">▶</div>
-          <div class="feed-card-overlay">
-            <p class="feed-card-type">📹 Video · 0:45</p>
-            <p class="feed-card-title">Polpo mimetizzato su fondale sabbioso: tecnica di caccia</p>
-            <p class="feed-card-author">Prof. Verdi A. · Univ. Bologna</p>
-          </div>
-        </div>
-        <div class="feed-card">
-          <div class="feed-card-bg" style="background:linear-gradient(135deg,#001830,#003060);">🐬</div>
-          <div class="feed-card-overlay">
-            <p class="feed-card-type">📸 Foto</p>
-            <p class="feed-card-title">Pod di delfini in migrazione — Stretto di Messina</p>
-            <p class="feed-card-author">Dr.ssa Marini L. · OGS</p>
-          </div>
-        </div>
-        <div class="feed-card">
-          <div class="feed-card-bg" style="background:linear-gradient(135deg,#201000,#402000);">🐠</div>
-          <div class="feed-card-play">▶</div>
-          <div class="feed-card-overlay">
-            <p class="feed-card-type">📹 Video · 2:10</p>
-            <p class="feed-card-title">Biodiversità della barriera: 200 specie in 10 minuti</p>
-            <p class="feed-card-author">Prof. Costa G. · ISPRA</p>
-          </div>
-        </div>
-        <div class="feed-card">
-          <div class="feed-card-bg" style="background:linear-gradient(135deg,#000820,#001540);">🌊</div>
-          <div class="feed-card-overlay">
-            <p class="feed-card-type">📸 Foto</p>
-            <p class="feed-card-title">Abisso Calypso: immagini dal punto più profondo del Med</p>
-            <p class="feed-card-author">Team ROV · CNR-ISMAR</p>
-          </div>
-        </div>
-        <div class="feed-card">
-          <div class="feed-card-bg" style="background:linear-gradient(135deg,#002010,#003020);">🐢</div>
-          <div class="feed-card-play">▶</div>
-          <div class="feed-card-overlay">
-            <p class="feed-card-type">📹 Video · 3:05</p>
-            <p class="feed-card-title">Nidificazione della caretta caretta sul litorale calabrese</p>
-            <p class="feed-card-author">Dr. Greco P. · WWF Italia</p>
-          </div>
+        <?php if ($isVid_f): ?><div class="feed-card-play">▶</div><?php endif; ?>
+        <div class="feed-card-overlay">
+          <p class="feed-card-type"><?= $tipo_f ?></p>
+          <p class="feed-card-title"><?= htmlspecialchars(mb_substr($f['titolo'],0,55)) ?></p>
+          <p class="feed-card-author"><?= htmlspecialchars($autore_f) ?></p>
         </div>
       </div>
-      <!-- PHP: endforeach; -->
+      <?php endforeach; ?>
+      <?php endif; ?>
+      </div>
     </div>
   </section>
+
+  <!-- MODAL per le card del feed in index -->
+  <div id="indexModalOverlay" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(4,17,30,.92);backdrop-filter:blur(12px);align-items:center;justify-content:center;" onclick="chiudiIndexModal(event)">
+    <div style="background:rgba(11,61,94,.35);border:1px solid rgba(114,215,240,.2);border-radius:20px;max-width:660px;width:92%;max-height:88vh;overflow-y:auto;position:relative;">
+      <button onclick="chiudiIndexModalBtn()" style="position:absolute;top:1rem;right:1rem;width:36px;height:36px;border-radius:50%;background:rgba(4,17,30,.7);border:1px solid rgba(114,215,240,.2);color:#fff;font-size:1.1rem;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;">✕</button>
+      <div id="indexModalMedia"></div>
+      <div style="padding:1.5rem;">
+        <p id="indexModalTipo" style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#72d7f0;margin-bottom:.5rem;"></p>
+        <h2 id="indexModalTitolo" style="font-family:'Cormorant Garamond',serif;font-size:1.7rem;color:#e8f6fc;font-weight:400;line-height:1.2;margin-bottom:.6rem;"></h2>
+        <p id="indexModalAutore" style="color:#5d9ab8;font-size:.82rem;margin-bottom:1rem;"></p>
+        <p id="indexModalDesc" style="color:#c5e4f5;font-size:.9rem;line-height:1.75;margin-bottom:1.5rem;"></p>
+        <div style="display:flex;gap:1rem;align-items:center;">
+          <button id="indexModalLikeBtn" onclick="toggleLikeIndex()" style="display:flex;align-items:center;gap:.5rem;padding:.65rem 1.4rem;border-radius:50px;border:1px solid rgba(114,215,240,.2);background:rgba(11,61,94,.4);color:#c5e4f5;font-family:'Outfit',sans-serif;font-size:.9rem;cursor:pointer;transition:all .2s;">
+            <span id="indexModalLikeIcon">🤍</span> <span id="indexModalLikeCount">0</span> Mi piace
+          </button>
+          <a href="feed.php" style="color:#5d9ab8;font-size:.82rem;text-decoration:none;">Vai al feed completo →</a>
+        </div>
+      </div>
+    </div>
+  </div>
 </main>
 
 <!-- ══════════════════════════════════════════
@@ -1485,6 +1477,78 @@ function formatDate(d) {
   try { return new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'}); } catch(e){return d;}
 }
 function sortResults() {}
+
+// ── MODAL FEED IN INDEX ───────────────────────────────────────────────────
+let indexModalPostId = null;
+
+function apriModalIndex(card) {
+  indexModalPostId = card.dataset.id;
+  const url   = card.dataset.url || '';
+  const isVid = /\.(mp4|webm|ogg)$/i.test(url);
+  const isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
+  const likes = parseInt(card.dataset.likes) || 0;
+
+  const mBox = document.getElementById('indexModalMedia');
+  if (isVid) {
+    mBox.innerHTML = `<video style="width:100%;max-height:340px;object-fit:cover;border-radius:16px 16px 0 0;display:block;" src="${escIdx(url)}" controls autoplay muted loop></video>`;
+  } else if (isImg) {
+    mBox.innerHTML = `<img style="width:100%;max-height:340px;object-fit:cover;border-radius:16px 16px 0 0;display:block;" src="${escIdx(url)}" alt="">`;
+  } else {
+    mBox.innerHTML = `<div style="height:180px;background:linear-gradient(135deg,#0b3d5e,#071e33);border-radius:16px 16px 0 0;display:flex;align-items:center;justify-content:center;font-size:5rem;">🌊</div>`;
+  }
+
+  document.getElementById('indexModalTipo').textContent   = isVid ? '📹 Video' : '📸 Foto';
+  document.getElementById('indexModalTitolo').textContent = card.dataset.titolo;
+  document.getElementById('indexModalAutore').textContent = 'Di ' + card.dataset.autore;
+  document.getElementById('indexModalDesc').textContent   = card.dataset.desc;
+  document.getElementById('indexModalLikeCount').textContent = likes;
+  document.getElementById('indexModalLikeIcon').textContent  = card.dataset.liked === '1' ? '❤️' : '🤍';
+  const likeBtn = document.getElementById('indexModalLikeBtn');
+  likeBtn.style.background    = card.dataset.liked === '1' ? 'rgba(224,90,58,.2)' : 'rgba(11,61,94,.4)';
+  likeBtn.style.borderColor   = card.dataset.liked === '1' ? 'rgba(224,90,58,.5)' : 'rgba(114,215,240,.2)';
+  likeBtn.style.color         = card.dataset.liked === '1' ? '#e8836a' : '#c5e4f5';
+
+  const overlay = document.getElementById('indexModalOverlay');
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function chiudiIndexModal(e) {
+  if (e.target === document.getElementById('indexModalOverlay')) chiudiIndexModalBtn();
+}
+function chiudiIndexModalBtn() {
+  document.getElementById('indexModalOverlay').style.display = 'none';
+  document.body.style.overflow = '';
+  const v = document.querySelector('#indexModalMedia video');
+  if (v) v.pause();
+  indexModalPostId = null;
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') chiudiIndexModalBtn(); });
+
+async function toggleLikeIndex() {
+  <?php if (!isset($_SESSION['id'])): ?>
+  window.location.href = 'Login.php?redirect=index.php'; return;
+  <?php endif; ?>
+  if (!indexModalPostId) return;
+  const fd = new FormData();
+  fd.append('like_post','1'); fd.append('id_post', indexModalPostId);
+  try {
+    const res = await fetch('feed.php', {method:'POST', body:fd});
+    const d = await res.json();
+    if (d.error === 'login') { window.location.href='Login.php'; return; }
+    const btn = document.getElementById('indexModalLikeBtn');
+    document.getElementById('indexModalLikeIcon').textContent  = d.liked ? '❤️' : '🤍';
+    document.getElementById('indexModalLikeCount').textContent = d.count;
+    btn.style.background  = d.liked ? 'rgba(224,90,58,.2)' : 'rgba(11,61,94,.4)';
+    btn.style.borderColor = d.liked ? 'rgba(224,90,58,.5)' : 'rgba(114,215,240,.2)';
+    btn.style.color       = d.liked ? '#e8836a' : '#c5e4f5';
+    // Aggiorna card
+    const card = document.querySelector(`.feed-card[data-id="${indexModalPostId}"]`);
+    if (card) { card.dataset.liked = d.liked ? '1' : '0'; card.dataset.likes = d.count; }
+  } catch(e) { console.error(e); }
+}
+
+function escIdx(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 
 
