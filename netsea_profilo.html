@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Il mio Profilo — NetSea</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --ink:#04111e;--deep:#071e33;--ocean:#0b3d5e;--mid:#1267a0;
+      --wave:#1b9fd4;--foam:#72d7f0;--pearl:#e8f6fc;--coral:#e05a3a;
+      --kelp:#2cb89b;--gold:#f0c040;--text:#c5e4f5;--muted:#5d9ab8;
+      --ease:cubic-bezier(.25,.46,.45,.94);
+    }
+    body{font-family:'Outfit',sans-serif;background:var(--ink);color:var(--text);min-height:100vh;cursor:none;}
+    .cursor{width:10px;height:10px;background:var(--foam);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:screen;}
+    .cursor-ring{width:32px;height:32px;border:1.5px solid rgba(114,215,240,.4);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);}
+
+    nav{height:64px;display:flex;align-items:center;padding:0 2.5rem;gap:1rem;background:rgba(4,17,30,.95);border-bottom:1px solid rgba(114,215,240,.08);position:sticky;top:0;z-index:100;}
+    .nav-logo{display:flex;align-items:center;gap:.6rem;text-decoration:none;font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:600;color:var(--pearl);}
+    .nav-logo svg{width:32px;height:32px;}
+    .nav-back{margin-left:auto;color:var(--muted);text-decoration:none;font-size:.875rem;transition:color .2s;}
+    .nav-back:hover{color:var(--foam);}
+
+    .layout{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 64px);}
+
+    /* SIDEBAR */
+    .sidebar{background:rgba(7,30,51,.5);border-right:1px solid rgba(114,215,240,.08);padding:2rem 1rem;}
+    .profile-mini{text-align:center;padding:0 .5rem 1.5rem;border-bottom:1px solid rgba(114,215,240,.08);margin-bottom:1.5rem;}
+    .avatar-big{
+      width:80px;height:80px;border-radius:50%;margin:0 auto .75rem;
+      background:linear-gradient(135deg,var(--ocean),var(--mid));
+      border:3px solid rgba(114,215,240,.25);
+      display:flex;align-items:center;justify-content:center;font-size:2.2rem;
+      position:relative;cursor:pointer;overflow:hidden;
+    }
+    .avatar-big:hover .avatar-edit{opacity:1;}
+    .avatar-edit{
+      position:absolute;inset:0;background:rgba(4,17,30,.7);
+      display:flex;align-items:center;justify-content:center;
+      font-size:.8rem;color:var(--foam);opacity:0;transition:opacity .2s;
+    }
+    .profile-mini h3{color:var(--pearl);font-size:.95rem;font-weight:600;}
+    .role-badge{
+      display:inline-flex;align-items:center;gap:.3rem;
+      margin-top:.35rem;padding:.2rem .65rem;border-radius:20px;
+      font-size:.72rem;font-weight:600;
+    }
+    .role-user{background:rgba(114,215,240,.1);color:var(--foam);border:1px solid rgba(114,215,240,.2);}
+    .role-ricercatore{background:rgba(44,184,155,.1);color:var(--kelp);border:1px solid rgba(44,184,155,.2);}
+    .role-admin{background:rgba(240,192,64,.1);color:var(--gold);border:1px solid rgba(240,192,64,.2);}
+
+    .sidebar-section{margin-bottom:1.5rem;}
+    .sidebar-section h4{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:0 .5rem;margin-bottom:.4rem;}
+    .sidebar-link{
+      display:flex;align-items:center;gap:.65rem;
+      padding:.6rem .75rem;border-radius:8px;
+      color:var(--muted);text-decoration:none;font-size:.875rem;font-weight:500;
+      cursor:pointer;border:none;background:none;width:100%;
+      transition:background .2s,color .2s;
+    }
+    .sidebar-link:hover{background:rgba(114,215,240,.06);color:var(--foam);}
+    .sidebar-link.active{background:rgba(27,159,212,.1);color:var(--foam);}
+    .sidebar-link .icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0;}
+    .logout-btn{color:var(--coral)!important;}
+    .logout-btn:hover{background:rgba(224,90,58,.08)!important;}
+
+    /* CONTENT */
+    .content{padding:2.5rem;max-width:760px;}
+    .content-title{font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--pearl);font-weight:400;margin-bottom:.3rem;}
+    .content-sub{color:var(--muted);font-size:.875rem;margin-bottom:2rem;}
+
+    /* PANELS */
+    .panel{display:none;}
+    .panel.active{display:block;animation:fadeIn .3s var(--ease);}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+    /* CARDS */
+    .settings-card{
+      background:rgba(11,61,94,.2);border:1px solid rgba(114,215,240,.1);
+      border-radius:12px;padding:1.5rem;margin-bottom:1.25rem;
+    }
+    .settings-card h3{
+      font-family:'Cormorant Garamond',serif;font-size:1.05rem;color:var(--pearl);
+      margin-bottom:1rem;display:flex;align-items:center;gap:.6rem;
+    }
+
+    .form-group{margin-bottom:1rem;}
+    .form-group label{display:block;font-size:.78rem;font-weight:500;color:var(--muted);margin-bottom:.4rem;}
+    .input-wrap{position:relative;}
+    .input-icon{position:absolute;left:.9rem;top:50%;transform:translateY(-50%);font-size:.9rem;pointer-events:none;}
+    input[type=text],input[type=email],input[type=password],select,textarea{
+      width:100%;background:rgba(11,61,94,.3);border:1px solid rgba(114,215,240,.15);
+      border-radius:9px;padding:.65rem 1rem .65rem 2.5rem;color:var(--pearl);
+      font-family:'Outfit',sans-serif;font-size:.875rem;outline:none;
+      transition:border-color .2s,background .2s,box-shadow .2s;
+    }
+    input::placeholder,textarea::placeholder{color:var(--muted);}
+    input:focus,select:focus,textarea:focus{border-color:var(--wave);background:rgba(11,61,94,.5);box-shadow:0 0 0 3px rgba(27,159,212,.12);}
+    input[readonly]{opacity:.6;cursor:not-allowed;}
+    .no-icon input,.no-icon select{padding-left:1rem;}
+    select option{background:var(--deep);}
+    textarea{resize:vertical;min-height:90px;padding-top:.65rem;line-height:1.5;}
+
+    .pw-toggle{position:absolute;right:.9rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:.9rem;padding:.2rem;transition:color .2s;}
+    .pw-toggle:hover{color:var(--foam);}
+
+    .form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+
+    .btn-save{
+      padding:.65rem 1.5rem;border-radius:8px;background:var(--wave);
+      color:var(--ink);border:none;font-family:'Outfit',sans-serif;
+      font-weight:600;font-size:.875rem;cursor:pointer;
+      transition:background .2s,transform .15s;
+    }
+    .btn-save:hover{background:var(--foam);transform:translateY(-1px);}
+    .btn-danger{
+      padding:.65rem 1.5rem;border-radius:8px;
+      background:rgba(224,90,58,.1);border:1px solid rgba(224,90,58,.25);
+      color:var(--coral);font-family:'Outfit',sans-serif;
+      font-weight:500;font-size:.875rem;cursor:pointer;
+      transition:all .2s;
+    }
+    .btn-danger:hover{background:rgba(224,90,58,.2);}
+
+    .save-ok{
+      display:none;font-size:.78rem;color:var(--kelp);
+      padding:.4rem .75rem;background:rgba(44,184,155,.1);
+      border:1px solid rgba(44,184,155,.2);border-radius:6px;
+      margin-left:.75rem;animation:fadeIn .3s;
+    }
+
+    /* RICERCATORE OTP SECTION */
+    .otp-section{
+      background:rgba(240,192,64,.06);border:1px solid rgba(240,192,64,.18);
+      border-radius:12px;padding:1.5rem;margin-bottom:1.25rem;
+    }
+    .otp-section h3{color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:1.05rem;margin-bottom:.5rem;}
+    .otp-section p{color:var(--muted);font-size:.82rem;line-height:1.6;margin-bottom:1rem;}
+    .otp-inputs{display:flex;gap:.5rem;margin-bottom:1rem;}
+    .otp-input{
+      width:44px;height:52px;border-radius:8px;background:rgba(11,61,94,.3);
+      border:1px solid rgba(114,215,240,.2);color:var(--pearl);
+      font-size:1.2rem;font-weight:600;text-align:center;outline:none;
+      font-family:'Outfit',sans-serif;
+      transition:border-color .2s,box-shadow .2s;
+      padding:0;
+    }
+    .otp-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(240,192,64,.15);}
+
+    /* STAT PILLS */
+    .stat-pills{display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1.5rem;}
+    .stat-pill{
+      background:rgba(11,61,94,.3);border:1px solid rgba(114,215,240,.1);
+      border-radius:10px;padding:.6rem 1rem;
+      display:flex;align-items:center;gap:.6rem;
+    }
+    .stat-pill .sp-num{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--foam);font-weight:600;}
+    .stat-pill .sp-lbl{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+
+    /* ACTIVITY LOG */
+    .activity-item{
+      display:flex;align-items:flex-start;gap:.85rem;
+      padding:.75rem 0;border-bottom:1px solid rgba(114,215,240,.06);
+    }
+    .activity-item:last-child{border-bottom:none;}
+    .ai-icon{font-size:1.2rem;width:32px;text-align:center;flex-shrink:0;}
+    .ai-text{font-size:.85rem;color:var(--text);}
+    .ai-time{font-size:.75rem;color:var(--muted);margin-top:.15rem;}
+
+    /* DANGER ZONE */
+    .danger-zone{
+      background:rgba(224,90,58,.04);border:1px solid rgba(224,90,58,.15);
+      border-radius:12px;padding:1.25rem 1.5rem;
+    }
+    .danger-zone h3{color:var(--coral);font-size:.9rem;font-weight:600;margin-bottom:.4rem;}
+    .danger-zone p{color:var(--muted);font-size:.8rem;margin-bottom:1rem;line-height:1.5;}
+
+    @media(max-width:768px){
+      .layout{grid-template-columns:1fr;}
+      .sidebar{border-right:none;border-bottom:1px solid rgba(114,215,240,.08);}
+      .form-grid-2{grid-template-columns:1fr;}
+    }
+  </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav>
+  <a href="index.php" class="nav-logo">
+    <svg viewBox="0 0 40 40" fill="none">
+      <circle cx="20" cy="20" r="18" fill="rgba(27,159,212,.15)" stroke="rgba(114,215,240,.3)" stroke-width="1"/>
+      <path d="M8 22 Q12 16 16 22 Q20 28 24 22 Q28 16 32 22" stroke="#72d7f0" stroke-width="2" fill="none" stroke-linecap="round"/>
+    </svg>
+    NetSea
+  </a>
+  <a href="index.php" class="nav-back">← Torna alla home</a>
+</nav>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="profile-mini">
+      <div class="avatar-big" id="avatarBig">
+        🔬
+        <div class="avatar-edit">✏️ Modifica</div>
+      </div>
+      <h3 id="sidebarName">Dr. Bianchi F.</h3>
+      <div class="role-badge role-ricercatore" id="sidebarRole">🔬 Ricercatore ✓</div>
+    </div>
+
+    <div class="sidebar-section">
+      <h4>Account</h4>
+      <button class="sidebar-link active" onclick="showPanel('profilo',this)"><span class="icon">👤</span> Profilo</button>
+      <button class="sidebar-link" onclick="showPanel('sicurezza',this)"><span class="icon">🔒</span> Sicurezza</button>
+      <button class="sidebar-link" onclick="showPanel('notifiche',this)"><span class="icon">🔔</span> Notifiche</button>
+    </div>
+
+    <!-- PHP: if $user->role === 'ricercatore' || 'admin' -->
+    <div class="sidebar-section" id="researcherNav">
+      <h4>Ricercatore</h4>
+      <button class="sidebar-link" onclick="showPanel('contenuti',this)"><span class="icon">✏️</span> I miei contenuti</button>
+      <button class="sidebar-link" onclick="showPanel('rilevazioni',this)"><span class="icon">🔬</span> Le mie rilevazioni</button>
+      <button class="sidebar-link" onclick="showPanel('otp',this)"><span class="icon">🔑</span> Attiva ricercatore</button>
+    </div>
+    <!-- PHP: endif -->
+
+    <div class="sidebar-section">
+      <h4>Altro</h4>
+      <button class="sidebar-link" onclick="showPanel('donazioni',this)"><span class="icon">💚</span> Le mie donazioni</button>
+      <button class="sidebar-link" onclick="showPanel('privacy',this)"><span class="icon">🛡</span> Privacy & dati</button>
+      <button class="sidebar-link logout-btn" onclick="doLogout()"><span class="icon">🚪</span> Esci</button>
+    </div>
+  </aside>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ── PROFILO ── -->
+    <div class="panel active" id="panel-profilo">
+      <h2 class="content-title">Il mio profilo</h2>
+      <p class="content-sub">Modifica le informazioni del tuo account NetSea</p>
+
+      <!-- STATS -->
+      <div class="stat-pills">
+        <div class="stat-pill"><span class="sp-num">24</span><div><div class="sp-lbl">News lette</div></div></div>
+        <div class="stat-pill"><span class="sp-num">€ 150</span><div><div class="sp-lbl">Donato</div></div></div>
+        <div class="stat-pill"><span class="sp-num">8</span><div><div class="sp-lbl">Contenuti</div></div></div>
+        <div class="stat-pill"><span class="sp-num">12 Feb</span><div><div class="sp-lbl">Iscrizione</div></div></div>
+      </div>
+
+      <!-- INFORMAZIONI PERSONALI -->
+      <div class="settings-card">
+        <h3>👤 Informazioni personali</h3>
+        <!-- PHP: questi campi sono pre-popolati con $user da DB -->
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label>Nome</label>
+            <div class="input-wrap"><span class="input-icon">👤</span>
+              <input type="text" id="nome" value="Francesca" placeholder="Nome">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Cognome</label>
+            <div class="input-wrap"><span class="input-icon">👤</span>
+              <input type="text" id="cognome" value="Bianchi" placeholder="Cognome">
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Username</label>
+          <div class="input-wrap"><span class="input-icon">@</span>
+            <input type="text" id="username" value="dr_bianchi" placeholder="Username">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <div class="input-wrap"><span class="input-icon">✉️</span>
+            <input type="email" id="email" value="bianchi@cnr.it" placeholder="Email">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Data di registrazione</label>
+          <div class="input-wrap"><span class="input-icon">📅</span>
+            <input type="text" value="12 Febbraio 2025" readonly>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem;">
+          <button class="btn-save" onclick="saveSection('profilo-info')">Salva modifiche</button>
+          <span class="save-ok" id="ok-profilo-info">✓ Salvato!</span>
+        </div>
+      </div>
+
+      <!-- RICERCATORE INFO (visible only for researcher role) -->
+      <div class="settings-card" id="researcherInfoCard">
+        <h3>🔬 Informazioni ricercatore</h3>
+        <div class="form-group">
+          <label>Ente / Università</label>
+          <div class="input-wrap"><span class="input-icon">🏛</span>
+            <input type="text" id="ente" value="CNR-ISMAR Trieste" placeholder="Ente di appartenenza">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Qualifica</label>
+          <div class="input-wrap no-icon">
+            <select style="padding-left:1rem;">
+              <option selected>Ricercatore di Ruolo</option>
+              <option>Professore Ordinario</option>
+              <option>Post-Dottorato</option>
+              <option>Dottorando</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Bio / Aree di ricerca</label>
+          <div class="input-wrap no-icon">
+            <textarea style="padding-left:1rem;" placeholder="Descrivi le tue aree di ricerca…">Ricercatrice specializzata in bioacustica dei cetacei e monitoraggio della biodiversità marina nel Mediterraneo.</textarea>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem;">
+          <button class="btn-save" onclick="saveSection('ricercatore-info')">Salva modifiche</button>
+          <span class="save-ok" id="ok-ricercatore-info">✓ Salvato!</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SICUREZZA ── -->
+    <div class="panel" id="panel-sicurezza">
+      <h2 class="content-title">Sicurezza</h2>
+      <p class="content-sub">Gestisci password e accessi al tuo account</p>
+
+      <div class="settings-card">
+        <h3>🔒 Cambia password</h3>
+        <div class="form-group">
+          <label>Password attuale</label>
+          <div class="input-wrap"><span class="input-icon">🔒</span>
+            <input type="password" id="pw-old" placeholder="Password attuale">
+            <button type="button" class="pw-toggle" onclick="togglePw('pw-old',this)">👁</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Nuova password</label>
+          <div class="input-wrap"><span class="input-icon">🔒</span>
+            <input type="password" id="pw-new" placeholder="Min. 8 caratteri" oninput="checkStr(this.value)">
+            <button type="button" class="pw-toggle" onclick="togglePw('pw-new',this)">👁</button>
+          </div>
+          <div style="margin-top:.4rem;display:flex;gap:3px;">
+            <div style="flex:1;height:3px;border-radius:2px;background:rgba(114,215,240,.1);" id="str1"></div>
+            <div style="flex:1;height:3px;border-radius:2px;background:rgba(114,215,240,.1);" id="str2"></div>
+            <div style="flex:1;height:3px;border-radius:2px;background:rgba(114,215,240,.1);" id="str3"></div>
+            <div style="flex:1;height:3px;border-radius:2px;background:rgba(114,215,240,.1);" id="str4"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Conferma nuova password</label>
+          <div class="input-wrap"><span class="input-icon">🔒</span>
+            <input type="password" id="pw-new2" placeholder="Ripeti la nuova password">
+            <button type="button" class="pw-toggle" onclick="togglePw('pw-new2',this)">👁</button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem;">
+          <button class="btn-save" onclick="changePassword()">Aggiorna password</button>
+          <span class="save-ok" id="ok-pw">✓ Password aggiornata!</span>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <h3>📱 Sessioni attive</h3>
+        <div class="activity-item">
+          <span class="ai-icon">💻</span>
+          <div><div class="ai-text">Chrome · Windows 11 · Roma, Italia</div><div class="ai-time">Attiva ora · Sessione corrente</div></div>
+        </div>
+        <div class="activity-item">
+          <span class="ai-icon">📱</span>
+          <div><div class="ai-text">Safari · iPhone 15 · Milano, Italia</div><div class="ai-time">3 giorni fa</div></div>
+          <button style="margin-left:auto;background:none;border:1px solid rgba(224,90,58,.3);color:var(--coral);border-radius:6px;padding:.3rem .7rem;font-size:.75rem;cursor:pointer;">Termina</button>
+        </div>
+      </div>
+
+      <div class="danger-zone">
+        <h3>⚠️ Zona pericolosa</h3>
+        <p>L'eliminazione dell'account è definitiva. Tutti i tuoi contenuti, rilevazioni e dati verranno rimossi permanentemente dal database.</p>
+        <button class="btn-danger">🗑 Elimina il mio account</button>
+      </div>
+    </div>
+
+    <!-- ── NOTIFICHE ── -->
+    <div class="panel" id="panel-notifiche">
+      <h2 class="content-title">Notifiche</h2>
+      <p class="content-sub">Scegli cosa vuoi ricevere e come</p>
+      <div class="settings-card">
+        <h3>📧 Email</h3>
+        <div style="display:flex;flex-direction:column;gap:.75rem;">
+          <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
+            <span style="font-size:.875rem;">Nuove news e articoli</span>
+            <input type="checkbox" checked style="width:auto;accent-color:var(--wave);">
+          </label>
+          <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
+            <span style="font-size:.875rem;">Aggiornamenti progetti di donazione</span>
+            <input type="checkbox" checked style="width:auto;accent-color:var(--wave);">
+          </label>
+          <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
+            <span style="font-size:.875rem;">Approvazione richieste (ricercatori)</span>
+            <input type="checkbox" checked style="width:auto;accent-color:var(--wave);">
+          </label>
+          <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
+            <span style="font-size:.875rem;">Newsletter mensile</span>
+            <input type="checkbox" style="width:auto;accent-color:var(--wave);">
+          </label>
+        </div>
+        <div style="margin-top:1.25rem;">
+          <button class="btn-save" onclick="saveSection('notifiche')">Salva preferenze</button>
+          <span class="save-ok" id="ok-notifiche">✓ Salvato!</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── OTP ATTIVAZIONE RICERCATORE ── -->
+    <div class="panel" id="panel-otp">
+      <h2 class="content-title">Attiva account ricercatore</h2>
+      <p class="content-sub">Inserisci la One-Time Password ricevuta via email dopo l'approvazione dell'admin</p>
+
+      <div class="otp-section">
+        <h3>🔑 Inserisci la OTP</h3>
+        <p>L'admin ti ha inviato una password temporanea di 8 caratteri. Inseriscila qui per attivare le funzionalità ricercatore e impostare la tua password definitiva.</p>
+        <div class="otp-inputs" id="otpInputs">
+          <input class="otp-input" maxlength="1" oninput="otpNext(this,0)" id="otp0">
+          <input class="otp-input" maxlength="1" oninput="otpNext(this,1)" id="otp1">
+          <input class="otp-input" maxlength="1" oninput="otpNext(this,2)" id="otp2">
+          <input class="otp-input" maxlength="1" oninput="otpNext(this,3)" id="otp3">
+          <input class="otp-input" maxlength="1" oninput="otpNext(this,4)" id="otp4">
+          <input class="otp-input" maxlength="1" oninput="otpNext(this,5)" id="otp5">
+          <input class="otp-input" maxlength="1" oninput="otpNext(this,6)" id="otp6">
+          <input class="otp-input" maxlength="1" oninput="otpNext(this,7)" id="otp7">
+        </div>
+        <button class="btn-save" onclick="verifyOtp()">Verifica OTP</button>
+      </div>
+
+      <div class="settings-card" id="newPwCard" style="display:none;">
+        <h3>🔒 Imposta la tua nuova password</h3>
+        <div class="form-group">
+          <label>Nuova password</label>
+          <div class="input-wrap"><span class="input-icon">🔒</span>
+            <input type="password" id="otp-pw1" placeholder="Min. 8 caratteri">
+            <button type="button" class="pw-toggle" onclick="togglePw('otp-pw1',this)">👁</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Conferma nuova password</label>
+          <div class="input-wrap"><span class="input-icon">🔒</span>
+            <input type="password" id="otp-pw2" placeholder="Ripeti la password">
+          </div>
+        </div>
+        <button class="btn-save" onclick="activateResearcher()">Attiva account ricercatore</button>
+      </div>
+    </div>
+
+    <!-- ── CONTENUTI ── -->
+    <div class="panel" id="panel-contenuti">
+      <h2 class="content-title">I miei contenuti</h2>
+      <p class="content-sub">News e contenuti multimediali pubblicati sul feed</p>
+      <div style="text-align:center;padding:3rem;color:var(--muted);">
+        <div style="font-size:3rem;margin-bottom:1rem;">📝</div>
+        <p>Nessun contenuto pubblicato ancora.</p>
+        <div style="display:flex;gap:.75rem;justify-content:center;margin-top:1.25rem;">
+          <a href="crea_news.php" class="btn-save" style="text-decoration:none;display:inline-block;">📰 Scrivi una news</a>
+          <a href="crea_contenuto.php" class="btn-save" style="text-decoration:none;display:inline-block;background:var(--kelp);">✏️ Crea un contenuto feed</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RILEVAZIONI ── -->
+    <div class="panel" id="panel-rilevazioni">
+      <h2 class="content-title">Le mie rilevazioni</h2>
+      <p class="content-sub">Dati ambientali che hai inserito nel database</p>
+      <div style="text-align:center;padding:3rem;color:var(--muted);">
+        <div style="font-size:3rem;margin-bottom:1rem;">🔬</div>
+        <p>Nessuna rilevazione inserita ancora.</p>
+        <a href="inserisci_rilevazione.php" class="btn-save" style="text-decoration:none;display:inline-block;margin-top:1.25rem;">+ Inserisci rilevazione</a>
+      </div>
+    </div>
+
+    <!-- ── DONAZIONI ── -->
+    <div class="panel" id="panel-donazioni">
+      <h2 class="content-title">Le mie donazioni</h2>
+      <p class="content-sub">Storico delle tue donazioni ai progetti di ricerca</p>
+      <div class="settings-card">
+        <h3>💚 Storico donazioni</h3>
+        <div class="activity-item">
+          <span class="ai-icon">💚</span>
+          <div><div class="ai-text"><strong style="color:var(--pearl);">€ 50</strong> — Monitoraggio Cetacei Mediterraneo 2025</div><div class="ai-time">15 Feb 2025 · Bonifico</div></div>
+        </div>
+        <div class="activity-item">
+          <span class="ai-icon">💚</span>
+          <div><div class="ai-text"><strong style="color:var(--pearl);">€ 100</strong> — Protezione Foca Monaca Dodecaneso</div><div class="ai-time">3 Gen 2025 · Carta di credito</div></div>
+        </div>
+        <div style="padding-top:1rem;font-size:.85rem;color:var(--muted);">
+          Totale donato: <strong style="color:var(--kelp);">€ 150</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PRIVACY ── -->
+    <div class="panel" id="panel-privacy">
+      <h2 class="content-title">Privacy & dati</h2>
+      <p class="content-sub">Gestisci i tuoi dati personali e le preferenze sulla privacy</p>
+      <div class="settings-card">
+        <h3>📥 Esporta i miei dati</h3>
+        <p style="color:var(--muted);font-size:.875rem;margin-bottom:1rem;line-height:1.6;">Puoi richiedere un'esportazione completa dei tuoi dati (profilo, contenuti, rilevazioni, donazioni) in formato JSON.</p>
+        <button class="btn-save">Richiedi esportazione dati</button>
+      </div>
+      <div class="danger-zone">
+        <h3>⚠️ Elimina account</h3>
+        <p>L'eliminazione rimuove definitivamente tutti i tuoi dati dal database NetSea. Questa operazione non è reversibile.</p>
+        <button class="btn-danger">🗑 Elimina account definitivamente</button>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /layout -->
+
+<script>
+/* CURSOR */
+const cur=document.getElementById('cursor'),ring=document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.cssText=`left:${mx}px;top:${my}px`;});
+(function loop(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.cssText=`left:${rx}px;top:${ry}px`;requestAnimationFrame(loop);})();
+
+/* PANEL SWITCH */
+function showPanel(id, btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-link').forEach(l=>l.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+}
+
+/* LOAD SESSION */
+document.addEventListener('DOMContentLoaded',()=>{
+  const user = JSON.parse(sessionStorage.getItem('netsea_user')||'null');
+  if(user){
+    document.getElementById('sidebarName').textContent = user.name;
+    document.getElementById('avatarBig').childNodes[0].textContent = user.avatar;
+    const rb = document.getElementById('sidebarRole');
+    const roles = {
+      user:        {label:'👤 Utente',           cls:'role-user'},
+      ricercatore: {label:'🔬 Ricercatore ✓',    cls:'role-ricercatore'},
+      admin:       {label:'⚙️ Amministratore',   cls:'role-admin'},
+    };
+    const r = roles[user.role] || roles.user;
+    rb.textContent = r.label;
+    rb.className = 'role-badge '+r.cls;
+    if(user.role!=='ricercatore' && user.role!=='admin'){
+      document.getElementById('researcherNav').style.display='none';
+      document.getElementById('researcherInfoCard').style.display='none';
+    }
+  }
+});
+
+/* SAVE FEEDBACK */
+function saveSection(id){
+  const okEl = document.getElementById('ok-'+id);
+  okEl.style.display='inline-block';
+  setTimeout(()=>okEl.style.display='none', 2500);
+}
+
+/* PW TOGGLE */
+function togglePw(id,btn){
+  const inp=document.getElementById(id);
+  inp.type=inp.type==='password'?'text':'password';
+  btn.textContent=inp.type==='password'?'👁':'🙈';
+}
+
+/* PW STRENGTH (security tab) */
+function checkStr(v){
+  const s=[document.getElementById('str1'),document.getElementById('str2'),document.getElementById('str3'),document.getElementById('str4')];
+  let score=0;
+  if(v.length>=8)score++;if(/[A-Z]/.test(v))score++;if(/[0-9]/.test(v))score++;if(/[^A-Za-z0-9]/.test(v))score++;
+  const c=['#e05a3a','#f0c040','#2cb89b','#72d7f0'];
+  s.forEach((seg,i)=>{seg.style.background=i<score?c[score-1]:'rgba(114,215,240,.1)';});
+}
+
+function changePassword(){
+  const o=document.getElementById('pw-old').value;
+  const n=document.getElementById('pw-new').value;
+  const n2=document.getElementById('pw-new2').value;
+  if(!o||!n){alert('Compila tutti i campi.');return;}
+  if(n!==n2){alert('Le password non coincidono.');return;}
+  if(n.length<8){alert('La nuova password deve essere di almeno 8 caratteri.');return;}
+  // In PHP: UPDATE utente SET password_hash=password_hash($new) WHERE id=$user_id
+  saveSection('pw');
+}
+
+/* OTP */
+function otpNext(inp,idx){
+  if(inp.value.length===1 && idx<7) document.getElementById('otp'+(idx+1)).focus();
+}
+
+function verifyOtp(){
+  let otp='';
+  for(let i=0;i<8;i++) otp+=document.getElementById('otp'+i).value;
+  if(otp.length<8){alert('Inserisci tutti gli 8 caratteri della OTP.');return;}
+  // In PHP: verify OTP from DB, check expiry
+  // Demo: accept any 8-char OTP
+  document.getElementById('newPwCard').style.display='block';
+  alert('✅ OTP verificata! Ora imposta la tua nuova password.');
+}
+
+function activateResearcher(){
+  const p1=document.getElementById('otp-pw1').value;
+  const p2=document.getElementById('otp-pw2').value;
+  if(!p1||p1.length<8){alert('Password troppo corta.');return;}
+  if(p1!==p2){alert('Le password non coincidono.');return;}
+  // In PHP: UPDATE utente SET role='ricercatore', password_hash=..., otp=NULL WHERE id=$user_id
+  const user=JSON.parse(sessionStorage.getItem('netsea_user')||'{}');
+  user.role='ricercatore'; user.roleLabel='Ricercatore ✓'; user.avatar='🔬';
+  sessionStorage.setItem('netsea_user',JSON.stringify(user));
+  alert('🎉 Account ricercatore attivato! Ora puoi pubblicare news e contenuti.');
+  location.reload();
+}
+
+function doLogout(){
+  sessionStorage.removeItem('netsea_user');
+  location.href='index.php';
+}
+</script>
+</body>
+</html>
