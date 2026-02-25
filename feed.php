@@ -58,72 +58,7 @@ if (isset($_SESSION['id']) && !empty($posts)) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Feed — NetSea</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <style>
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    :root{--ink:#04111e;--deep:#071e33;--ocean:#0b3d5e;--wave:#1b9fd4;--foam:#72d7f0;--pearl:#e8f6fc;--text:#c5e4f5;--muted:#5d9ab8;--kelp:#2cb89b;--coral:#e05a3a;}
-    html,body{height:100%;overflow:hidden;}
-    body{font-family:'Outfit',sans-serif;background:#000;color:var(--text);cursor:none;}
-    .cursor{width:10px;height:10px;background:var(--foam);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:screen;}
-    .cursor-ring{width:32px;height:32px;border:1.5px solid rgba(114,215,240,.4);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);}
-
-    nav{position:fixed;top:0;left:0;right:0;z-index:200;height:56px;display:flex;align-items:center;padding:0 1.5rem;background:linear-gradient(180deg,rgba(4,17,30,.9),transparent);}
-    .nav-logo{display:flex;align-items:center;gap:.5rem;text-decoration:none;font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:var(--pearl);}
-    .nav-logo svg{width:28px;height:28px;}
-    .nav-back{margin-left:auto;color:rgba(255,255,255,.6);text-decoration:none;font-size:.85rem;transition:color .2s;}
-    .nav-back:hover{color:#fff;}
-
-    /* FEED */
-    .feed-container{height:100vh;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;}
-    .feed-container::-webkit-scrollbar{display:none;}
-
-    .post-slide{height:100vh;scroll-snap-align:start;position:relative;display:flex;align-items:flex-end;overflow:hidden;cursor:pointer;}
-    .post-bg{position:absolute;inset:0;background:linear-gradient(135deg,var(--deep),var(--ocean));z-index:0;}
-    .post-bg img,.post-bg video{width:100%;height:100%;object-fit:cover;display:block;}
-    .post-overlay{position:absolute;inset:0;background:linear-gradient(0deg,rgba(4,17,30,.85) 0%,rgba(4,17,30,.1) 50%,transparent 100%);z-index:1;}
-
-    .post-content{position:relative;z-index:2;padding:1.5rem 5rem 2rem 1.5rem;width:100%;max-width:550px;}
-    .post-autore{font-size:.82rem;color:rgba(255,255,255,.7);margin-bottom:.5rem;}
-    .post-autore strong{color:#fff;}
-    .post-titolo{font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:#fff;font-weight:400;line-height:1.2;margin-bottom:.5rem;}
-    .post-desc{font-size:.85rem;color:rgba(255,255,255,.75);line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-
-    /* AZIONI LATO */
-    .post-actions{position:absolute;right:1rem;bottom:2rem;z-index:2;display:flex;flex-direction:column;align-items:center;gap:1.25rem;}
-    .action-btn{display:flex;flex-direction:column;align-items:center;gap:.3rem;cursor:pointer;color:rgba(255,255,255,.85);background:none;border:none;font-family:'Outfit',sans-serif;}
-    .action-btn .icon{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.12);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;font-size:1.3rem;transition:all .2s;border:1px solid rgba(255,255,255,.15);}
-    .action-btn:hover .icon,.action-btn:focus .icon{background:rgba(255,255,255,.22);transform:scale(1.1);}
-    .action-btn.liked .icon{background:rgba(224,90,58,.35);border-color:rgba(224,90,58,.6);}
-    .action-btn .lbl{font-size:.72rem;color:rgba(255,255,255,.7);}
-
-    .tipo-badge{position:absolute;top:4.5rem;left:1rem;z-index:2;padding:.2rem .7rem;border-radius:20px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;background:rgba(27,159,212,.25);border:1px solid rgba(27,159,212,.4);color:var(--foam);backdrop-filter:blur(4px);}
-
-    .loading{text-align:center;padding:2rem;color:var(--muted);font-size:.875rem;height:100vh;display:flex;align-items:center;justify-content:center;scroll-snap-align:start;}
-    .empty-slide{height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;color:var(--muted);background:var(--ink);scroll-snap-align:start;}
-
-    /* ── MODAL DETTAGLIO POST ── */
-    .modal-overlay{position:fixed;inset:0;z-index:500;background:rgba(4,17,30,.92);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;}
-    .modal-overlay.open{opacity:1;pointer-events:all;}
-    .modal{background:rgba(11,61,94,.35);border:1px solid rgba(114,215,240,.2);border-radius:20px;max-width:680px;width:92%;max-height:90vh;overflow-y:auto;position:relative;scrollbar-width:thin;}
-    .modal-media{width:100%;max-height:380px;object-fit:cover;border-radius:16px 16px 0 0;display:block;}
-    .modal-media-placeholder{height:200px;background:linear-gradient(135deg,var(--ocean),var(--deep));display:flex;align-items:center;justify-content:center;font-size:6rem;border-radius:16px 16px 0 0;}
-    .modal-body{padding:1.5rem;}
-    .modal-tipo{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--foam);margin-bottom:.6rem;}
-    .modal-titolo{font-family:'Cormorant Garamond',serif;font-size:1.7rem;color:var(--pearl);font-weight:400;line-height:1.2;margin-bottom:.6rem;}
-    .modal-autore{color:var(--muted);font-size:.82rem;margin-bottom:1rem;}
-    .modal-autore strong{color:var(--wave);}
-    .modal-desc{color:var(--text);font-size:.9rem;line-height:1.75;margin-bottom:1.5rem;}
-    .modal-actions{display:flex;align-items:center;gap:1rem;}
-    .modal-like-btn{display:flex;align-items:center;gap:.5rem;padding:.65rem 1.4rem;border-radius:50px;border:1px solid rgba(114,215,240,.2);background:rgba(11,61,94,.4);color:var(--text);font-family:'Outfit',sans-serif;font-size:.9rem;cursor:pointer;transition:all .2s;}
-    .modal-like-btn:hover{border-color:rgba(224,90,58,.4);background:rgba(224,90,58,.1);}
-    .modal-like-btn.liked{background:rgba(224,90,58,.2);border-color:rgba(224,90,58,.5);color:#e8836a;}
-    .modal-close{position:absolute;top:1rem;right:1rem;width:36px;height:36px;border-radius:50%;background:rgba(4,17,30,.7);border:1px solid rgba(114,215,240,.2);color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;z-index:10;}
-    .modal-close:hover{background:rgba(224,90,58,.3);}
-
-    /* FAB pubblica */
-    .fab{position:fixed;bottom:2rem;right:2rem;z-index:300;background:var(--wave);color:#04111e;border-radius:50px;padding:.85rem 1.5rem;font-family:'Outfit',sans-serif;font-weight:700;font-size:.9rem;text-decoration:none;display:flex;align-items:center;gap:.5rem;box-shadow:0 8px 30px rgba(27,159,212,.4);transition:all .2s;}
-    .fab:hover{background:var(--foam);transform:translateY(-2px);}
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="cursor" id="cursor"></div>

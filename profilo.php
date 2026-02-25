@@ -92,39 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profilo — NetSea</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <style>
-      *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-      :root{
-        --ink:#04111e;--deep:#071e33;--ocean:#0b3d5e;--wave:#1b9fd4;--foam:#72d7f0;--pearl:#e8f6fc;
-        --text:#c5e4f5;--muted:#5d9ab8;--kelp:#2cb89b;--coral:#e05a3a;--ease:cubic-bezier(.25,.46,.45,.94);
-      }
-      body{font-family:'Outfit',sans-serif;background:var(--ink);color:var(--text);padding:2rem 2.5rem;}
-      h1{font-family:'Cormorant Garamond',serif;font-size:2.2rem;color:var(--pearl);margin-bottom:1.5rem;}
-      h2{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--foam);margin-top:2rem;margin-bottom:1rem;}
-      .container{max-width:700px;}
-      .profile-card{background:rgba(11,61,94,.2);border:1px solid rgba(114,215,240,.15);border-radius:12px;padding:1.5rem;margin-bottom:2rem;}
-      .profile-header{display:flex;align-items:center;gap:1.5rem;margin-bottom:1.5rem;}
-      .avatar{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#1b9fd4,#2cb89b);display:flex;align-items:center;justify-content:center;font-size:2.5rem;flex-shrink:0;}
-      .profile-info p{margin:.3rem 0;color:var(--muted);font-size:.95rem;}
-      .profile-info strong{color:var(--foam);}
-      .alert{padding:1rem;margin:.5rem 0;border-radius:10px;}
-      .alert-success{background:rgba(44,184,155,.1);border:1px solid rgba(44,184,155,.3);color:#3dd4ae;}
-      .alert-error{background:rgba(224,90,58,.1);border:1px solid rgba(224,90,58,.3);color:#e8836a;}
-      .form-group{margin-bottom:1.5rem;}
-      label{display:block;margin-bottom:.5rem;color:var(--foam);font-weight:500;}
-      input{width:100%;padding:.75rem;background:rgba(11,61,94,.3);border:1px solid rgba(114,215,240,.15);border-radius:8px;color:var(--pearl);font-family:'Outfit',sans-serif;font-size:.95rem;}
-      input:focus{outline:none;border-color:var(--wave);background:rgba(11,61,94,.5);box-shadow:0 0 0 3px rgba(27,159,212,.12);}
-      .btn{display:inline-block;padding:.8rem 1.5rem;background:var(--wave);color:var(--ink);border:none;border-radius:8px;font-weight:600;cursor:pointer;transition:all .2s;font-size:.95rem;}
-      .btn:hover{background:var(--foam);transform:translateY(-2px);box-shadow:0 8px 20px rgba(27,159,212,.25);}
-      .btn-secondary{background:rgba(114,215,240,.1);border:1px solid rgba(114,215,240,.2);color:var(--foam);}
-      .btn-secondary:hover{background:rgba(114,215,240,.2);transform:none;box-shadow:none;}
-      .btn-back{margin-top:1rem;}
-      .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
-      @media(max-width:600px){.form-row{grid-template-columns:1fr;}}
-      a{color:var(--wave);text-decoration:none;transition:color .2s;}
-      a:hover{color:var(--foam);}
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">

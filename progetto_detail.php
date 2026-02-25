@@ -34,72 +34,7 @@ $data_inizio = $p['data_i'] ? date('d M Y', strtotime($p['data_i'])) : '—';
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= htmlspecialchars($p['titolo']) ?> — NetSea</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <style>
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    :root{--ink:#04111e;--deep:#071e33;--ocean:#0b3d5e;--wave:#1b9fd4;--foam:#72d7f0;--pearl:#e8f6fc;--text:#c5e4f5;--muted:#5d9ab8;--kelp:#2cb89b;--coral:#e05a3a;--gold:#f0c040;}
-    body{font-family:'Outfit',sans-serif;background:var(--ink);color:var(--text);cursor:none;}
-    .cursor{width:10px;height:10px;background:var(--foam);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:screen;}
-    .cursor-ring{width:32px;height:32px;border:1.5px solid rgba(114,215,240,.4);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);}
-    nav{position:sticky;top:0;z-index:200;height:64px;display:flex;align-items:center;padding:0 2.5rem;gap:1rem;background:rgba(4,17,30,.95);border-bottom:1px solid rgba(114,215,240,.08);}
-    .nav-logo{display:flex;align-items:center;gap:.6rem;text-decoration:none;font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:600;color:var(--pearl);}
-    .nav-logo svg{width:32px;height:32px;}
-    .nav-back{margin-left:auto;color:var(--muted);text-decoration:none;font-size:.875rem;transition:color .2s;}
-    .nav-back:hover{color:var(--foam);}
-
-    /* HERO */
-    .hero{padding:3.5rem 2.5rem 3rem;background:linear-gradient(160deg,rgba(7,30,51,.8) 0%,var(--ink) 100%);border-bottom:1px solid rgba(114,215,240,.08);}
-    .hero-inner{max-width:900px;margin:0 auto;}
-
-    .stato-badge{display:inline-block;padding:.3rem .9rem;border-radius:20px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:1.1rem;}
-    .stato-attivo{background:rgba(44,184,155,.15);border:1px solid rgba(44,184,155,.35);color:var(--kelp);}
-    .stato-concluso{background:rgba(93,154,184,.1);border:1px solid rgba(93,154,184,.2);color:var(--muted);}
-
-    h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,4vw,3rem);color:var(--pearl);font-weight:400;line-height:1.15;margin-bottom:.75rem;}
-    .data-inizio{color:var(--muted);font-size:.85rem;margin-bottom:2rem;}
-
-    /* PROGRESS */
-    .progress-box{background:rgba(11,61,94,.25);border:1px solid rgba(114,215,240,.12);border-radius:14px;padding:1.75rem;margin-bottom:2rem;}
-    .prog-nums{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;}
-    .prog-raccolto{font-family:'Cormorant Garamond',serif;font-size:2.2rem;color:var(--kelp);font-weight:400;}
-    .prog-raccolto span{font-size:1rem;color:var(--muted);font-family:'Outfit',sans-serif;}
-    .prog-budget{color:var(--muted);font-size:.9rem;}
-    .prog-budget strong{color:var(--pearl);}
-    .bar-track{height:10px;background:rgba(114,215,240,.08);border-radius:5px;overflow:hidden;margin-bottom:.6rem;}
-    .bar-fill{height:100%;background:linear-gradient(90deg,var(--kelp),var(--wave));border-radius:5px;transition:width .6s cubic-bezier(.25,.46,.45,.94);}
-    .prog-perc{font-size:.82rem;color:var(--muted);}
-    .prog-perc strong{color:var(--foam);}
-
-    /* FORM DONAZIONE */
-    .dona-section{background:linear-gradient(135deg,rgba(44,184,155,.08),rgba(27,159,212,.05));border:1px solid rgba(44,184,155,.2);border-radius:14px;padding:1.75rem;margin-bottom:2rem;}
-    .dona-section h3{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--pearl);font-weight:400;margin-bottom:.5rem;}
-    .dona-section p{color:var(--muted);font-size:.875rem;margin-bottom:1.25rem;line-height:1.6;}
-    .dona-form{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;}
-    .dona-input-wrap{position:relative;flex:1;min-width:140px;max-width:220px;}
-    .dona-input-wrap span{position:absolute;left:.9rem;top:50%;transform:translateY(-50%);color:var(--muted);}
-    .dona-input{width:100%;padding:.7rem 1rem .7rem 2rem;background:rgba(11,61,94,.4);border:1px solid rgba(114,215,240,.15);border-radius:10px;color:var(--pearl);font-family:'Outfit',sans-serif;font-size:.95rem;outline:none;transition:border-color .2s;}
-    .dona-input:focus{border-color:var(--wave);box-shadow:0 0 0 3px rgba(27,159,212,.12);}
-    .btn-dona{padding:.7rem 1.75rem;background:var(--kelp);color:var(--ink);border:none;border-radius:10px;font-family:'Outfit',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;transition:all .2s;}
-    .btn-dona:hover{background:#3dd4ae;transform:translateY(-1px);box-shadow:0 6px 20px rgba(44,184,155,.3);}
-    .hint{font-size:.75rem;color:var(--muted);}
-    .login-hint{color:var(--muted);font-size:.875rem;}
-    .login-hint a{color:var(--wave);text-decoration:none;}
-
-    /* OBIETTIVO */
-    .main{max-width:900px;margin:2.5rem auto 5rem;padding:0 2.5rem;}
-    .sez-title{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--pearl);font-weight:400;margin-bottom:1rem;padding-bottom:.6rem;border-bottom:1px solid rgba(114,215,240,.1);}
-    .obiettivo-text{color:var(--text);font-size:.95rem;line-height:1.85;white-space:pre-line;}
-
-    /* DATI SCHEDA */
-    .dati{display:flex;flex-wrap:wrap;gap:.65rem;margin-bottom:2rem;}
-    .dato{background:rgba(11,61,94,.3);border:1px solid rgba(114,215,240,.1);border-radius:10px;padding:.7rem 1.1rem;min-width:130px;}
-    .dato-lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:.25rem;}
-    .dato-val{font-size:.9rem;color:var(--pearl);font-weight:500;}
-
-    .flash{padding:.9rem 1.2rem;border-radius:10px;margin-bottom:1.5rem;background:rgba(44,184,155,.1);border:1px solid rgba(44,184,155,.3);color:#3dd4ae;max-width:900px;margin-left:auto;margin-right:auto;}
-
-    @media(max-width:600px){.hero{padding:2rem 1.25rem;}.main{padding:0 1.25rem 3rem;}.prog-raccolto{font-size:1.7rem;}.dona-form{flex-direction:column;align-items:stretch;}}
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="cursor" id="cursor"></div>

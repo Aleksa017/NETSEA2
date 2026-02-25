@@ -32,56 +32,7 @@ $tutte_news = $stmt->fetchAll();
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>News — NetSea</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <style>
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    :root{--ink:#04111e;--deep:#071e33;--ocean:#0b3d5e;--wave:#1b9fd4;--foam:#72d7f0;--pearl:#e8f6fc;--text:#c5e4f5;--muted:#5d9ab8;--kelp:#2cb89b;}
-    body{font-family:'Outfit',sans-serif;background:var(--ink);color:var(--text);cursor:none;}
-    .cursor{width:10px;height:10px;background:var(--foam);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:screen;}
-    .cursor-ring{width:32px;height:32px;border:1.5px solid rgba(114,215,240,.4);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);}
-    nav{position:sticky;top:0;z-index:200;height:64px;display:flex;align-items:center;padding:0 2.5rem;gap:1rem;background:rgba(4,17,30,.95);border-bottom:1px solid rgba(114,215,240,.08);}
-    .nav-logo{display:flex;align-items:center;gap:.6rem;text-decoration:none;font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:600;color:var(--pearl);}
-    .nav-logo svg{width:32px;height:32px;}
-    .nav-back{margin-left:auto;color:var(--muted);text-decoration:none;font-size:.875rem;transition:color .2s;}
-    .nav-back:hover{color:var(--foam);}
-
-    .page-hero{padding:3rem 2.5rem 2.5rem;background:linear-gradient(180deg,rgba(7,30,51,.7),var(--ink));border-bottom:1px solid rgba(114,215,240,.08);}
-    .page-hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,4vw,3rem);color:var(--pearl);font-weight:400;margin-bottom:1.25rem;}
-
-    /* BARRA RICERCA */
-    .search-bar{display:flex;gap:.75rem;max-width:600px;}
-    .search-bar input{flex:1;padding:.75rem 1.1rem;background:rgba(11,61,94,.35);border:1px solid rgba(114,215,240,.15);border-radius:10px;color:var(--pearl);font-family:'Outfit',sans-serif;font-size:.95rem;outline:none;transition:border-color .2s;}
-    .search-bar input:focus{border-color:var(--wave);box-shadow:0 0 0 3px rgba(27,159,212,.12);}
-    .search-bar input::placeholder{color:var(--muted);}
-    .search-bar button{padding:.75rem 1.5rem;background:var(--wave);color:var(--ink);border:none;border-radius:10px;font-family:'Outfit',sans-serif;font-weight:600;cursor:pointer;transition:background .2s;}
-    .search-bar button:hover{background:var(--foam);}
-
-    .main{max-width:900px;margin:2.5rem auto 5rem;padding:0 2.5rem;}
-    .results-info{color:var(--muted);font-size:.875rem;margin-bottom:1.5rem;}
-    .results-info strong{color:var(--foam);}
-
-    /* CARD NEWS */
-    .news-card{display:grid;grid-template-columns:200px 1fr;gap:0;background:rgba(11,61,94,.2);border:1px solid rgba(114,215,240,.1);border-radius:14px;overflow:hidden;margin-bottom:1.1rem;text-decoration:none;transition:border-color .2s,transform .2s;}
-    .news-card:hover{border-color:rgba(114,215,240,.28);transform:translateY(-2px);}
-    .news-card-img{background:linear-gradient(135deg,var(--ocean),var(--deep));display:flex;align-items:center;justify-content:center;font-size:4rem;min-height:130px;position:relative;overflow:hidden;}
-    .news-card-img img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
-    .news-card-body{padding:1.1rem 1.25rem;display:flex;flex-direction:column;justify-content:space-between;}
-    .news-card-body h3{font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--pearl);font-weight:400;line-height:1.25;margin-bottom:.5rem;}
-    .news-card-body p{color:var(--muted);font-size:.82rem;line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:.75rem;flex:1;}
-    .news-card-footer{display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;}
-    .news-autore{font-size:.78rem;color:var(--wave);}
-    .news-meta{display:flex;gap:.75rem;font-size:.75rem;color:var(--muted);}
-
-    .empty{text-align:center;padding:4rem;color:var(--muted);}
-    .empty div{font-size:3rem;margin-bottom:1rem;}
-
-    <?php if (isset($_SESSION['id']) && in_array($_SESSION['ruolo'] ?? '', ['ricercatore','admin'])): ?>
-    .fab{position:fixed;bottom:2rem;right:2rem;z-index:100;background:var(--wave);color:var(--ink);border:none;border-radius:50px;padding:.85rem 1.5rem;font-family:'Outfit',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:.5rem;box-shadow:0 8px 30px rgba(27,159,212,.35);transition:all .2s;}
-    .fab:hover{background:var(--foam);transform:translateY(-2px);}
-    <?php endif; ?>
-
-    @media(max-width:600px){.news-card{grid-template-columns:1fr;}.news-card-img{min-height:140px;}.main{padding:0 1.25rem 3rem;}}
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="cursor" id="cursor"></div>

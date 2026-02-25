@@ -39,41 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pubblica News — NetSea</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <style>
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    :root{--ink:#04111e;--deep:#071e33;--ocean:#0b3d5e;--wave:#1b9fd4;--foam:#72d7f0;--pearl:#e8f6fc;--text:#c5e4f5;--muted:#5d9ab8;--kelp:#2cb89b;}
-    body{font-family:'Outfit',sans-serif;background:var(--ink);color:var(--text);cursor:none;}
-    .cursor{width:10px;height:10px;background:var(--foam);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:screen;}
-    .cursor-ring{width:32px;height:32px;border:1.5px solid rgba(114,215,240,.4);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);}
-    nav{height:64px;display:flex;align-items:center;padding:0 2.5rem;background:rgba(4,17,30,.95);border-bottom:1px solid rgba(114,215,240,.08);}
-    .nav-logo{display:flex;align-items:center;gap:.6rem;text-decoration:none;font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:600;color:var(--pearl);}
-    .nav-logo svg{width:32px;height:32px;}
-    .nav-back{margin-left:auto;color:var(--muted);text-decoration:none;font-size:.875rem;}
-    .nav-back:hover{color:var(--foam);}
-    .main{max-width:750px;margin:3rem auto;padding:0 2rem 5rem;}
-    h1{font-family:'Cormorant Garamond',serif;font-size:2.2rem;color:var(--pearl);font-weight:400;margin-bottom:2rem;}
-    .alert{padding:1rem 1.2rem;border-radius:10px;margin-bottom:1.5rem;}
-    .alert-ok{background:rgba(44,184,155,.1);border:1px solid rgba(44,184,155,.3);color:#3dd4ae;}
-    .alert-err{background:rgba(224,90,58,.1);border:1px solid rgba(224,90,58,.3);color:#e8836a;}
-    .form-group{margin-bottom:1.5rem;}
-    .form-group label{display:block;font-size:.82rem;font-weight:600;color:var(--foam);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.06em;}
-    .hint{font-size:.78rem;color:var(--muted);margin-top:.35rem;}
-    input[type=text],input[type=url],textarea{width:100%;padding:.8rem 1rem;background:rgba(11,61,94,.3);border:1px solid rgba(114,215,240,.15);border-radius:10px;color:var(--pearl);font-family:'Outfit',sans-serif;font-size:.95rem;outline:none;transition:border-color .2s,box-shadow .2s;}
-    input:focus,textarea:focus{border-color:var(--wave);box-shadow:0 0 0 3px rgba(27,159,212,.12);}
-    textarea{resize:vertical;min-height:200px;line-height:1.7;}
-    /* PREVIEW COPERTINA */
-    .preview-box{margin-top:.75rem;border-radius:10px;overflow:hidden;border:1px solid rgba(114,215,240,.15);display:none;max-height:300px;}
-    .preview-box img,.preview-box video{width:100%;max-height:300px;object-fit:cover;display:block;}
-    /* TOOLBAR EDITOR */
-    .toolbar{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem;}
-    .toolbar button{padding:.3rem .7rem;background:rgba(11,61,94,.4);border:1px solid rgba(114,215,240,.15);border-radius:6px;color:var(--muted);cursor:pointer;font-size:.82rem;transition:all .2s;}
-    .toolbar button:hover{border-color:rgba(114,215,240,.3);color:var(--foam);}
-    .btn-submit{padding:.9rem 2rem;background:var(--wave);color:var(--ink);border:none;border-radius:10px;font-family:'Outfit',sans-serif;font-weight:700;font-size:1rem;cursor:pointer;transition:all .2s;}
-    .btn-submit:hover{background:var(--foam);transform:translateY(-1px);}
-    .btn-sec{padding:.9rem 1.5rem;background:transparent;border:1px solid rgba(114,215,240,.2);color:var(--muted);border-radius:10px;font-family:'Outfit',sans-serif;cursor:pointer;margin-left:.75rem;transition:all .2s;text-decoration:none;display:inline-block;}
-    .btn-sec:hover{border-color:rgba(114,215,240,.35);color:var(--foam);}
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="cursor" id="cursor"></div>

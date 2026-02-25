@@ -36,55 +36,7 @@ $autore = trim(($n['nome_autore'] ?? '') . ' ' . ($n['cognome_autore'] ?? ''));
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= htmlspecialchars($n['titolo']) ?> — NetSea</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <style>
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    :root{--ink:#04111e;--deep:#071e33;--ocean:#0b3d5e;--wave:#1b9fd4;--foam:#72d7f0;--pearl:#e8f6fc;--text:#c5e4f5;--muted:#5d9ab8;--kelp:#2cb89b;}
-    body{font-family:'Outfit',sans-serif;background:var(--ink);color:var(--text);cursor:none;}
-    .cursor{width:10px;height:10px;background:var(--foam);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:screen;}
-    .cursor-ring{width:32px;height:32px;border:1.5px solid rgba(114,215,240,.4);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);}
-    nav{position:sticky;top:0;z-index:200;height:64px;display:flex;align-items:center;padding:0 2.5rem;background:rgba(4,17,30,.95);border-bottom:1px solid rgba(114,215,240,.08);}
-    .nav-logo{display:flex;align-items:center;gap:.6rem;text-decoration:none;font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:600;color:var(--pearl);}
-    .nav-logo svg{width:32px;height:32px;}
-    .nav-back{margin-left:auto;color:var(--muted);text-decoration:none;font-size:.875rem;transition:color .2s;}
-    .nav-back:hover{color:var(--foam);}
-
-    /* COPERTINA */
-    .cover{width:100%;height:420px;position:relative;overflow:hidden;background:linear-gradient(135deg,var(--ocean),var(--deep));}
-    .cover img,.cover video{width:100%;height:100%;object-fit:cover;display:block;}
-    .cover-overlay{position:absolute;inset:0;background:linear-gradient(0deg,rgba(4,17,30,.85) 0%,rgba(4,17,30,.2) 60%,transparent 100%);}
-    .cover-emoji{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding-right:15%;font-size:10rem;opacity:.12;pointer-events:none;}
-
-    /* ARTICOLO */
-    .article-wrap{max-width:780px;margin:0 auto;padding:3rem 2rem 5rem;}
-    .article-meta{display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;margin-bottom:1.5rem;}
-    .meta-tag{padding:.25rem .75rem;border-radius:20px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:rgba(27,159,212,.15);border:1px solid rgba(27,159,212,.3);color:var(--foam);}
-    .meta-date{color:var(--muted);font-size:.82rem;}
-    .meta-views{color:var(--muted);font-size:.82rem;}
-    h1{font-family:'Cormorant Garamond',serif;font-size:clamp(1.8rem,4vw,2.8rem);color:var(--pearl);font-weight:400;line-height:1.2;margin-bottom:1rem;}
-    .autore-box{display:flex;align-items:center;gap:.75rem;padding:1rem;background:rgba(11,61,94,.2);border:1px solid rgba(114,215,240,.1);border-radius:10px;margin-bottom:2rem;}
-    .autore-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--wave),var(--kelp));display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
-    .autore-info p{color:var(--pearl);font-size:.9rem;font-weight:500;}
-    .autore-info span{color:var(--muted);font-size:.78rem;}
-
-    /* TESTO ARTICOLO */
-    .article-body{font-size:1rem;line-height:1.9;color:var(--text);}
-    .article-body p{margin-bottom:1.25rem;}
-
-    /* COPERTINA MEDIA inline */
-    .media-cover{width:100%;border-radius:12px;overflow:hidden;margin-bottom:2rem;border:1px solid rgba(114,215,240,.12);}
-    .media-cover img,.media-cover video{width:100%;max-height:400px;object-fit:cover;display:block;}
-
-    /* ALTRE NEWS */
-    .altre-news{margin-top:3rem;padding-top:2rem;border-top:1px solid rgba(114,215,240,.1);}
-    .altre-title{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--pearl);font-weight:400;margin-bottom:1rem;}
-    .news-row{display:flex;align-items:center;gap:1rem;background:rgba(11,61,94,.2);border:1px solid rgba(114,215,240,.07);border-radius:10px;padding:.9rem 1.1rem;margin-bottom:.6rem;text-decoration:none;transition:border-color .2s,background .2s;}
-    .news-row:hover{border-color:rgba(114,215,240,.22);background:rgba(11,61,94,.4);}
-    .news-row h4{color:var(--pearl);font-size:.88rem;font-weight:500;}
-    .news-row .data{margin-left:auto;flex-shrink:0;font-size:.74rem;color:var(--muted);}
-
-    @media(max-width:600px){.cover{height:260px;}.article-wrap{padding:2rem 1.25rem 3rem;}}
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="cursor" id="cursor"></div>
