@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Creato il: Feb 24, 2026 alle 11:57
+-- Creato il: Feb 25, 2026 alle 20:48
 -- Versione del server: 10.4.32-MariaDB
 -- Versione PHP: 8.0.30
 
@@ -75,6 +75,19 @@ CREATE TABLE `like_media` (
   `id_utente` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dump dei dati per la tabella `like_media`
+--
+
+INSERT INTO `like_media` (`id_post`, `id_utente`) VALUES
+(1, 1),
+(2, 1),
+(3, 1),
+(3, 7),
+(4, 1),
+(4, 7),
+(6, 7);
+
 -- --------------------------------------------------------
 
 --
@@ -103,17 +116,26 @@ CREATE TABLE `media` (
   `descrizione` text DEFAULT NULL,
   `url` text DEFAULT NULL,
   `data_pub` date DEFAULT NULL,
-  `visualizzazioni` int(11) DEFAULT NULL
+  `visualizzazioni` int(11) DEFAULT NULL,
+  `id_utente` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dump dei dati per la tabella `media`
 --
 
-INSERT INTO `media` (`id_post`, `titolo`, `descrizione`, `url`, `data_pub`, `visualizzazioni`) VALUES
-(1, 'Delfino comune in acque siciliane', 'Riprese subacquee di un branco di delfini comuni', 'https://example.com/video1', '2026-02-24', NULL),
-(2, 'Foto tartaruga caretta caretta', 'Nidificazione sulla spiaggia di Lampedusa', 'https://example.com/foto1', '2026-02-21', NULL),
-(3, 'Squalo bianco avvistato', 'Video raro di Carcharodon carcharias nel Tirreno', 'https://example.com/video2', '2026-02-19', NULL);
+INSERT INTO `media` (`id_post`, `titolo`, `descrizione`, `url`, `data_pub`, `visualizzazioni`, `id_utente`) VALUES
+(1, 'Delfino comune in acque siciliane', 'Riprese subacquee di un branco di delfini comuni', 'https://example.com/video1', '2026-02-24', NULL, NULL),
+(2, 'Foto tartaruga caretta caretta', 'Nidificazione sulla spiaggia di Lampedusa', 'https://example.com/foto1', '2026-02-21', NULL, NULL),
+(3, 'Squalo bianco avvistato', 'Video raro di Carcharodon carcharias nel Tirreno', 'https://example.com/video2', '2026-02-19', NULL, NULL),
+(4, 'Squalo bianco nell\'Arcipelago Toscano', 'Avvistamento raro di Carcharodon carcharias a 12 miglia dall\'Isola del Giglio. L\'esemplare, stimato sui 4 metri, è stato fotografato durante una campagna di monitoraggio cetacei.', 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/White_shark.jpg/1280px-White_shark.jpg', '2026-02-23', 312, 1),
+(5, 'Biocenosi corallina a 40m — Baia di Capri', 'Documentazione fotografica di una prateria di gorgonie rosse (Paramuricea clavata) nel tratto marino del Parco Nazionale del Vesuvio. Profondità: 38-42 metri.', 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Coral_reef_at_palmyra.jpg/1280px-Coral_reef_at_palmyra.jpg', '2026-02-22', 198, 1),
+(6, 'Pod di delfini in migrazione — Stretto di Messina', 'Un gruppo di circa 30 esemplari di Stenella coeruleoalba attraversa lo Stretto durante la migrazione primaverile. Rilevati tramite idrofoni a 2km di distanza.', 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Tursiops_truncatus_01.jpg/1280px-Tursiops_truncatus_01.jpg', '2026-02-21', 445, 1),
+(7, 'Nidificazione della caretta caretta sul litorale calabrese', 'Documentazione di un nido di tartaruga Caretta caretta sulla spiaggia di Brancaleone (RC). Identificati 112 uova, schiusa prevista tra 55-60 giorni.', 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Camponotus_flavomarginatus_ant.jpg/640px-Camponotus_flavomarginatus_ant.jpg', '2026-02-20', 267, 1),
+(8, 'Abisso Calypso: immagini dal fondale del Med', 'Prima campagna ROV nella fossa Calypso (5121m), il punto più profondo del Mediterraneo. Rilevate specie di policheti e anfipodi mai catalogati prima.', 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Bilateria_underwater.jpg/1280px-Bilateria_underwater.jpg', '2026-02-19', 189, 1),
+(9, 'Polpo mimetizzato su fondale sabbioso', 'Sequenza fotografica di Octopus vulgaris durante una tecnica di caccia attiva su substrato sabbioso a 8 metri di profondità al largo di Portofino.', 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Octopus3.jpg/1280px-Octopus3.jpg', '2026-02-18', 523, 1),
+(10, 'Prateria di Posidonia oceanica — Isole Egadi', 'Monitoraggio annuale della prateria di Posidonia nel sito Natura 2000 IT9110015. La densità dei fasci fogliari risulta stabile rispetto al rilevamento 2023.', 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Coral_reef_at_palmyra.jpg/640px-Coral_reef_at_palmyra.jpg', '2026-02-17', 134, 1),
+(11, 'Foca monaca avvistata a Lampedusa', 'Un esemplare di Monachus monachus fotografato all\'imboccatura di una grotta marina sul versante sud-ovest dell\'isola. Ultima segnalazione certificata nell\'area risaliva al 2019.', 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Tursiops_truncatus_01.jpg/640px-Tursiops_truncatus_01.jpg', '2026-02-16', 891, 1);
 
 -- --------------------------------------------------------
 
@@ -153,7 +175,13 @@ INSERT INTO `news` (`id_news`, `titolo`, `contenuto`, `copertina`, `data_pub`, `
 (2, 'La foca monaca torna in Sicilia dopo 30 anni', 'Straordinario avvistamento al largo delle coste siciliane: una foca monaca fotografata nei pressi di Marettimo.', NULL, '2026-02-16', NULL, 4),
 (3, 'Avvistato un delfino comune nel Golfo di Napoli', 'Un esemplare di Delphinus delphis è stato avvistato a poche miglia dalla costa partenopea. Il delfino sembrava in buone condizioni di salute.', NULL, '2026-02-24', NULL, 4),
 (4, 'La foca monaca torna in Sicilia dopo 30 anni', 'Una foca monaca fotografata nei pressi di Marettimo. Ultima segnalazione certificata nel 1994.', NULL, '2026-02-17', NULL, 4),
-(5, 'Nuovo studio sul tonno rosso nel Mediterraneo', 'I dati del censimento 2024 mostrano un incremento del 12% della popolazione di Thunnus thynnus.', NULL, '2026-02-10', NULL, 4);
+(5, 'Nuovo studio sul tonno rosso nel Mediterraneo', 'I dati del censimento 2024 mostrano un incremento del 12% della popolazione di Thunnus thynnus.', NULL, '2026-02-10', NULL, 4),
+(6, 'Temperatura degli oceani raggiunge il record storico nel 2024', 'I ricercatori confermano un aumento di 0.3°C rispetto alla media del secolo. Le conseguenze per la biodiversità marina potrebbero essere irreversibili.\n\nIl monitoraggio satellitare condotto dal CNR-ISMAR ha rilevato temperature superficiali degli oceani mai registrate prima nella storia delle misurazioni moderne. Il fenomeno è distribuito su tutte le principali aree oceaniche, con picchi nel Mediterraneo e nell\'Atlantico settentrionale.\n\nI modelli climatici prevedono un ulteriore incremento di 0.2°C entro il 2030 se le emissioni di CO₂ non verranno ridotte significativamente.', NULL, '2025-02-15', 142, 1),
+(7, 'Sbiancamento di massa: il 60% della Grande Barriera Corallina colpita', 'La quarta ondata di sbiancamento massiccio in 8 anni ha investito le barriere coralline australiane. I biologi parlano di punto di non ritorno.\n\nLe temperature record dell\'acqua hanno causato lo stress termico nei coralli, costringendoli ad espellere le alghe simbiotiche che forniscono loro nutrienti e colore. Il fenomeno, noto come sbiancamento, porta alla morte dei coralli se le temperature non tornano nella norma entro poche settimane.\n\nSolo il 40% della barriera ha resistito indenne a quest\'ultimo episodio, rispetto all\'80% che era sopravvissuto al primo grande sbiancamento del 1998.', NULL, '2025-02-12', 100, 1),
+(8, 'Nuova specie di cefalopode bioluminescente scoperta nel Mar Ionio', 'Il team del CNR-ISMAR ha identificato nelle profondità ioniche una specie di polpo mai catalogata prima, capace di emettere luce blu-verde.\n\nLa scoperta è avvenuta durante una campagna di esplorazione a 800 metri di profondità al largo delle coste calabresi. L\'animale, provvisoriamente denominato Octopus ionicus luminescens, presenta organi fotofori distribuiti lungo tutti i tentacoli.\n\nLo studio è stato pubblicato sulla rivista Marine Biology ed è già stato citato da 34 pubblicazioni scientifiche internazionali.', NULL, '2025-02-08', 207, 1),
+(9, 'La popolazione di balene azzurre mostra segni di ripresa nell\'Atlantico', 'Dopo decenni di caccia intensiva, il censimento 2024 rivela un aumento del 12% degli esemplari nel Nord Atlantico: una rara buona notizia per gli oceani.\n\nIl censimento è stato condotto tramite identificazione fotografica delle macchie pigmentarie uniche di ogni individuo, tecnica che permette di tracciare gli spostamenti delle singole balene nel corso degli anni.\n\nLa ripresa della popolazione è attribuita principalmente all\'efficacia delle zone di protezione istituite negli anni \'90 e alla riduzione del traffico navale nelle rotte di migrazione.', NULL, '2025-02-03', 88, 1),
+(10, 'Microplastiche rilevate nel sangue di cetacei del Mediterraneo', 'Studio dell\'Università di Palermo rileva concentrazioni preoccupanti di particelle di plastica in campioni ematici di delfini e balene del Tirreno.\n\nI campioni di sangue sono stati prelevati da 42 cetacei durante operazioni di soccorso e rilascio coordinate con il Centro Recupero Tartarughe Marine. In tutti i campioni analizzati sono state trovate microplastiche di dimensioni comprese tra 1 e 500 micrometri.\n\nLe specie più colpite risultano essere il delfino comune (Delphinus delphis) e il tursiope (Tursiops truncatus), entrambi ai vertici della catena alimentare mediterranea.', NULL, '2025-01-28', 173, 1),
+(11, 'Acidificazione degli oceani: impatti a cascata sulle catene alimentari marine', 'Il pH medio degli oceani è sceso di 0.1 unità rispetto all\'era preindustriale. I modelli predicono effetti devastanti sulle catene trofiche entro il 2050.\n\nL\'assorbimento di CO₂ atmosferica da parte degli oceani ha causato una progressiva acidificazione delle acque, che compromette la capacità degli organismi marini di formare gusci e scheletri calcarei. Molluschi, echinodermi e coralli sono tra le categorie più a rischio.\n\nLe conseguenze si ripercuotono sull\'intera catena alimentare marina: il collasso delle popolazioni di zooplancton calcificante potrebbe ridurre drasticamente le risorse disponibili per pesci, cetacei e uccelli marini.', NULL, '2025-01-22', 115, 1);
 
 -- --------------------------------------------------------
 
@@ -193,6 +221,7 @@ CREATE TABLE `progetto` (
   `titolo` varchar(150) DEFAULT NULL,
   `obiettivo` text DEFAULT NULL,
   `budget` float DEFAULT NULL,
+  `raccolto` float DEFAULT 0,
   `stato` varchar(50) DEFAULT NULL,
   `data_i` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -201,10 +230,10 @@ CREATE TABLE `progetto` (
 -- Dump dei dati per la tabella `progetto`
 --
 
-INSERT INTO `progetto` (`id_pd`, `titolo`, `obiettivo`, `budget`, `stato`, `data_i`) VALUES
-(1, 'Salviamo la foca monaca', 'Protezione degli habitat costieri per la foca monaca nel Mediterraneo orientale', 15000, 'attivo', '2026-02-24'),
-(2, 'Monitoraggio delfini Adriatico', 'Campagna di monitoraggio acustico dei cetacei nell Adriatico', 8000, 'attivo', '2026-01-25'),
-(3, 'Restauro Posidonia Adriatica', 'Reimpianto delle praterie di Posidonia oceanica lungo le coste adriatiche', 30000, 'urgente', '2026-02-10');
+INSERT INTO `progetto` (`id_pd`, `titolo`, `obiettivo`, `budget`, `raccolto`, `stato`, `data_i`) VALUES
+(1, 'Salviamo la foca monaca', 'Protezione degli habitat costieri per la foca monaca nel Mediterraneo orientale', 15004, 10000, 'attivo', '2026-02-24'),
+(2, 'Monitoraggio delfini Adriatico', 'Campagna di monitoraggio acustico dei cetacei nell Adriatico', 8000, 0, 'attivo', '2026-01-25'),
+(3, 'Restauro Posidonia Adriatica', 'Reimpianto delle praterie di Posidonia oceanica lungo le coste adriatiche', 30000, 0, 'urgente', '2026-02-10');
 
 -- --------------------------------------------------------
 
@@ -223,8 +252,10 @@ CREATE TABLE `ricercatore` (
 --
 
 INSERT INTO `ricercatore` (`id_ricercatore`, `qualifica`, `id_ente`) VALUES
+(1, 'Dottoressa di Ricerca - CNR-ISMAR', NULL),
 (4, 'Studente Magistrale (tesi)', NULL),
-(5, 'Ricercatore CNR', NULL);
+(5, 'Ricercatore CNR', NULL),
+(7, 'Assegnista di Ricerca', NULL);
 
 -- --------------------------------------------------------
 
@@ -249,7 +280,8 @@ CREATE TABLE `richiesta_ricercatore` (
 --
 
 INSERT INTO `richiesta_ricercatore` (`id_richiesta`, `id_utente`, `ente_dichiarato`, `qualifica_dichiarata`, `motivazione`, `certificato_path`, `badge_path`, `stato`, `data_richiesta`) VALUES
-(1, 4, 'università di padova', 'Studente Magistrale (tesi)', 'yyy', 'uploads/certificati/4_cert.jpg', 'uploads/badge/4_badge.jpg', 'approvato', '2026-02-23');
+(1, 4, 'università di padova', 'Studente Magistrale (tesi)', 'yyy', 'uploads/certificati/4_cert.jpg', 'uploads/badge/4_badge.jpg', 'approvato', '2026-02-23'),
+(2, 7, 'università di padova', 'Assegnista di Ricerca', 'wddd', NULL, NULL, 'approvato', '2026-02-25');
 
 -- --------------------------------------------------------
 
@@ -344,11 +376,12 @@ CREATE TABLE `utente` (
 -- Dump dei dati per la tabella `utente`
 --
 
-INSERT INTO `utente` (`id_utente`, `username`, `password_hash`, `email`, `nome`, `cognome`, `data_registrazione`, `is_admin`) VALUES
-(1, 'flashrin02', '$2y$10$HKZWr.JA5l6PiONcJwXoe.WkKHBPT6xLVBR/LdadA5d1CAaIBepFy', 'alessiocanepari22@gmail.com', 'ALESSIO', 'CANEPARI', '2026-02-23', 1),
-(2, 'xronti', '$2y$10$9nUr.ggHzQb5LWVZNIZZAetmEPtDhqAh/4xPYGPKwg9YXMNJ.BtQK', 'samurossi1999@gmail.com', 'Samuele', 'Rossi', '2026-02-23', 0),
-(4, 'borasomichelangelo', '$2y$10$TLn59xvdJ/2eBFPBg4BKyeB0jngtlD0xXYifnLX3QPhdt1vxdeQZa', 'francescoschiatto@gmail.com', 'michelangelo', 'Boraso', '2026-02-23', 0),
-(5, 'mario_ricercatore', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ricerca@demo.it', 'Mario', 'Rossi', '2026-02-23', 0);
+INSERT INTO `utente` (`id_utente`, `username`, `password_hash`, `email`, `nome`, `cognome`, `data_registrazione`, `is_admin`, `foto_profilo`) VALUES
+(1, 'flashrin02', '$2y$10$HKZWr.JA5l6PiONcJwXoe.WkKHBPT6xLVBR/LdadA5d1CAaIBepFy', 'alessiocanepari22@gmail.com', 'ALESSIO', 'CANEPARI', '2026-02-23', 1, NULL),
+(2, 'xronti', '$2y$10$9nUr.ggHzQb5LWVZNIZZAetmEPtDhqAh/4xPYGPKwg9YXMNJ.BtQK', 'samurossi1999@gmail.com', 'Samuele', 'Rossi', '2026-02-23', 0, NULL),
+(4, 'borasomichelangelo', '$2y$10$TLn59xvdJ/2eBFPBg4BKyeB0jngtlD0xXYifnLX3QPhdt1vxdeQZa', 'francescoschiatto@gmail.com', 'michelangelo', 'Boraso', '2026-02-23', 0, NULL),
+(5, 'mario_ricercatore', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ricerca@demo.it', 'Mario', 'Rossi', '2026-02-23', 0, NULL),
+(7, 'iris_', '$2y$10$njo3eIRvU7CPUOJg5o1CYu2Du9zC1wt/kA4kJ2qkt/FRQNnUYJ6v.', 'irislagnarini@gmail.com', 'Iris', 'Lagnarini', '2026-02-25', 0, NULL);
 
 --
 -- Indici per le tabelle scaricate
@@ -484,28 +517,34 @@ ALTER TABLE `utente`
 --
 
 --
+-- AUTO_INCREMENT per la tabella `donazione`
+--
+ALTER TABLE `donazione`
+  MODIFY `id_donazione` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT per la tabella `media`
 --
 ALTER TABLE `media`
-  MODIFY `id_post` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_post` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT per la tabella `news`
 --
 ALTER TABLE `news`
-  MODIFY `id_news` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_news` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT per la tabella `progetto`
 --
 ALTER TABLE `progetto`
-  MODIFY `id_pd` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_pd` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT per la tabella `richiesta_ricercatore`
 --
 ALTER TABLE `richiesta_ricercatore`
-  MODIFY `id_richiesta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_richiesta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT per la tabella `specie`
@@ -517,7 +556,7 @@ ALTER TABLE `specie`
 -- AUTO_INCREMENT per la tabella `utente`
 --
 ALTER TABLE `utente`
-  MODIFY `id_utente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id_utente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Limiti per le tabelle scaricate
