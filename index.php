@@ -27,14 +27,7 @@ $utente_loggato = isset($_SESSION['id']) ? [
 ══════════════════════════════════════════ -->
 <nav id="navbar" class="nav-index">
   <a href="index.php" class="nav-logo">
-    <div class="nav-logo-wave">
-      <svg viewBox="0 0 40 40" fill="none">
-        <circle cx="20" cy="20" r="18" fill="rgba(27,159,212,.15)" stroke="rgba(114,215,240,.3)" stroke-width="1"/>
-        <path d="M8 22 Q12 16 16 22 Q20 28 24 22 Q28 16 32 22" stroke="#72d7f0" stroke-width="2" fill="none" stroke-linecap="round"/>
-        <path d="M8 18 Q12 12 16 18 Q20 24 24 18 Q28 12 32 18" stroke="rgba(114,215,240,.45)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      </svg>
-    </div>
-    NetSea
+    <img src="logo.svg" alt="NetSea" style="height:56px;width:auto;object-fit:contain;display:block;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5));">
   </a>
 
   <ul class="nav-links">
@@ -43,6 +36,7 @@ $utente_loggato = isset($_SESSION['id']) ? [
     <li><a href="feed.php">Scopri</a></li>
     <li><a href="Specie.php">Specie</a></li>
     <li><a href="Luoghi.php">Luoghi</a></li>
+    <li><a href="rilevazioni.php">Rilevazioni</a></li>
   </ul>
 
   <!-- SEARCH -->
@@ -741,6 +735,75 @@ function renderRisultati(dati, query) {
     });
   }
 
+  // ── HABITAT ───────────────────────────────────────────────────────────
+  if (dati.habitat && dati.habitat.length) {
+    html += `<p style="font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:#5d9ab8;margin-bottom:.75rem;">🏔️ Habitat correlati</p>`;
+    dati.habitat.forEach(h => {
+      html += `
+      <a href="luoghi.php" style="display:flex;align-items:flex-start;gap:1rem;background:rgba(11,61,94,.2);border:1px solid rgba(114,215,240,.07);border-radius:10px;padding:.9rem 1.1rem;margin-bottom:.6rem;text-decoration:none;" onmouseover="this.style.borderColor='rgba(114,215,240,.2)'" onmouseout="this.style.borderColor='rgba(114,215,240,.07)'">
+        <span style="font-size:1.6rem;flex-shrink:0;">🌿</span>
+        <div style="flex:1;">
+          <p style="color:#e8f6fc;font-size:.9rem;font-weight:500;">${esc(h.nome)}</p>
+          <p style="color:#72d7f0;font-size:.72rem;margin:.2rem 0;">📏 ${esc(h.range_habitat||'')}${h.temperatura?' · 🌡️ '+h.temperatura+'°C':''}</p>
+          <p style="color:#5d9ab8;font-size:.78rem;">${esc((h.descrizione||'').slice(0,100))}…</p>
+        </div>
+      </a>`;
+    });
+    html += '<div style="height:.75rem;"></div>';
+  }
+
+  // ── LUOGHI ────────────────────────────────────────────────────────────
+  if (dati.luoghi && dati.luoghi.length) {
+    html += `<p style="font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:#5d9ab8;margin-bottom:.75rem;">📍 Luoghi</p>`;
+    const tipoIcon = {mare:'🌊',golfo:'🏖️',stretto:'🌉',fossa:'🕳️',arcipelago:'🏝️',canale:'⚓',costa:'🏔️',laguna:'🦢'};
+    dati.luoghi.forEach(l => {
+      const ico = tipoIcon[l.tipo||''] || '🌊';
+      html += `
+      <a href="luoghi.php?id=${l.id_luogo}" style="display:flex;align-items:center;gap:1rem;background:rgba(11,61,94,.2);border:1px solid rgba(114,215,240,.07);border-radius:10px;padding:.9rem 1.1rem;margin-bottom:.6rem;text-decoration:none;" onmouseover="this.style.borderColor='rgba(114,215,240,.2)'" onmouseout="this.style.borderColor='rgba(114,215,240,.07)'">
+        <span style="font-size:1.8rem;">${ico}</span>
+        <div style="flex:1;">
+          <p style="color:#e8f6fc;font-size:.9rem;font-weight:500;">${esc(l.nome)}</p>
+          <p style="color:#5d9ab8;font-size:.75rem;">${esc(l.paese_nome||'')} · ${esc(l.oceano||'')}${l.profondita?' · fino a '+l.profondita+' m':''}</p>
+        </div>
+        <span style="font-size:.7rem;color:#72d7f0;text-transform:uppercase;letter-spacing:.08em;">${esc(l.tipo||'')}</span>
+      </a>`;
+    });
+    html += '<div style="height:.75rem;"></div>';
+  }
+
+  // ── MINACCE ───────────────────────────────────────────────────────────
+  if (dati.minacce && dati.minacce.length) {
+    html += `<p style="font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:#5d9ab8;margin-bottom:.75rem;">⚠️ Minacce ambientali</p>`;
+    dati.minacce.forEach(m => {
+      html += `
+      <div style="display:flex;align-items:flex-start;gap:1rem;background:rgba(224,90,58,.05);border:1px solid rgba(224,90,58,.15);border-radius:10px;padding:.9rem 1.1rem;margin-bottom:.6rem;">
+        <span style="font-size:1.6rem;flex-shrink:0;">⚠️</span>
+        <div>
+          <p style="color:#e8f6fc;font-size:.9rem;font-weight:500;">${esc(m.nome)}</p>
+          <p style="color:#e0a060;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;margin:.2rem 0;">${esc(m.tipo||'')} · ${m.n_specie} specie a rischio</p>
+          <p style="color:#c5e4f5;font-size:.78rem;line-height:1.55;">${esc((m.descrizione||'').slice(0,120))}…</p>
+        </div>
+      </div>`;
+    });
+  }
+
+  // ── RILEVAZIONI AMBIENTALI ──────────────────────────────────────────────
+  if (dati.rilevazioni && dati.rilevazioni.length) {
+    html += `<p style="font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:#5d9ab8;margin-bottom:.75rem;">📈 Rilevazioni ambientali</p>`;
+    dati.rilevazioni.forEach(r => {
+      html += `
+      <a href="rilevazioni.php?luogo=${r.id_luogo}" style="display:flex;align-items:center;gap:1rem;background:rgba(11,61,94,.2);border:1px solid rgba(114,215,240,.07);border-radius:10px;padding:.75rem 1.1rem;margin-bottom:.5rem;text-decoration:none;" onmouseover="this.style.borderColor='rgba(114,215,240,.2)'" onmouseout="this.style.borderColor='rgba(114,215,240,.07)'">
+        <span style="font-size:1.5rem;">🔬</span>
+        <div style="flex:1;">
+          <p style="color:#e8f6fc;font-size:.88rem;font-weight:500;">${esc(r.parametro)}</p>
+          <p style="color:#5d9ab8;font-size:.75rem;">📍 ${esc(r.luogo_nome)} · ${r.data}</p>
+        </div>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:#72d7f0;">${r.valore}</span>
+      </a>`;
+    });
+    html += `<div style="height:.75rem;"></div>`;
+  }
+
   // ── NESSUN RISULTATO ──────────────────────────────────────────────────
   if (!html) {
     html = `<div style="text-align:center;padding:3rem;color:#5d9ab8;">
@@ -773,7 +836,7 @@ function apriModalIndex(card) {
 
   const mBox = document.getElementById('indexModalMedia');
   if (isVid) {
-    mBox.innerHTML = `<video style="width:100%;max-height:340px;object-fit:cover;border-radius:16px 16px 0 0;display:block;" src="${escIdx(url)}" controls autoplay muted loop></video>`;
+    mBox.innerHTML = `<video style="width:100%;max-height:340px;object-fit:contain;border-radius:16px 16px 0 0;display:block;background:#000;" src="${escIdx(url)}" controls autoplay loop></video>`;
   } else if (isImg) {
     mBox.innerHTML = `<img style="width:100%;max-height:340px;object-fit:cover;border-radius:16px 16px 0 0;display:block;" src="${escIdx(url)}" alt="">`;
   } else {

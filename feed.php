@@ -64,7 +64,7 @@ if (isset($_SESSION['id']) && !empty($posts)) {
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
 
-<nav>
+<nav class="nav-feed">
   <a href="index.php" class="nav-logo">
     <svg viewBox="0 0 40 40" fill="none">
       <circle cx="20" cy="20" r="18" fill="rgba(27,159,212,.15)" stroke="rgba(114,215,240,.3)" stroke-width="1"/>
@@ -81,7 +81,7 @@ if (isset($_SESSION['id']) && !empty($posts)) {
     <button class="modal-close" onclick="chiudiModalBtn()">✕</button>
     <div id="modalMedia"></div>
     <div class="modal-body">
-      <p class="modal-tipo" id="modalTipo"></p>
+      <p class="modal-tipo" id="modalTipo" style="font-size:.75rem;color:var(--wave);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;"></p>
       <h2 class="modal-titolo" id="modalTitolo"></h2>
       <p class="modal-autore" id="modalAutore"></p>
       <p class="modal-desc" id="modalDesc"></p>
@@ -135,7 +135,7 @@ if (isset($_SESSION['id']) && !empty($posts)) {
     <?php endif; ?>
   </div>
   <div class="post-overlay"></div>
-  <span class="tipo-badge">🎬 Contenuto</span>
+  <span class="tipo-badge"><?= $isVideo ? '🎬 VIDEO' : '📷 FOTO' ?></span>
 
   <div class="post-content">
     <p class="post-autore">📍 <strong><?= htmlspecialchars($autore) ?></strong> · <?= $data ?></p>
@@ -185,22 +185,25 @@ let modalPostId = null;
 function apriModal(slide) {
   modalPostId = slide.dataset.id;
   const url    = slide.dataset.url;
+  const isVidModal = /\.(mp4|webm|ogg)$/i.test(url||'');
+  const tipoEl = document.getElementById('modalTipo');
+  if(tipoEl) tipoEl.textContent = isVidModal ? '🎬 VIDEO' : '📷 FOTO';
   const isVid  = /\.(mp4|webm|ogg)$/i.test(url);
   const isImg  = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
-  const liked  = slide.dataset.liked === '1';
+  const liked  = slide.dataset.liked === '1'; // sempre aggiornato
   const likes  = parseInt(slide.dataset.likes) || 0;
 
   // Media
   const mBox = document.getElementById('modalMedia');
   if (isVid) {
-    mBox.innerHTML = `<video class="modal-media" src="${esc(url)}" controls autoplay muted loop></video>`;
+    mBox.innerHTML = `<video class="modal-media" src="${esc(url)}" controls autoplay loop></video>`;
   } else if (isImg) {
     mBox.innerHTML = `<img class="modal-media" src="${esc(url)}" alt="">`;
   } else {
     mBox.innerHTML = `<div class="modal-media-placeholder">🌊</div>`;
   }
 
-  document.getElementById('modalTipo').textContent    = '🎬 Contenuto';
+  // tipo già impostato sopra
   document.getElementById('modalTitolo').textContent  = slide.dataset.titolo;
   document.getElementById('modalAutore').innerHTML    = `Di <strong>${esc(slide.dataset.autore)}</strong> · ${esc(slide.dataset.data)}`;
   document.getElementById('modalDesc').textContent    = slide.dataset.desc;
@@ -277,7 +280,17 @@ const observer = new IntersectionObserver(entries => {
     else { vid.pause(); vid.currentTime=0; }
   });
 },{threshold:0.7});
-document.querySelectorAll('.post-slide').forEach(s=>observer.observe(s));
+document.querySelectorAll('.post-slide').forEach(s=>{
+  observer.observe(s);
+  // Detect orientamento video per class .vertical
+  const vid = s.querySelector('video');
+  if (vid) {
+    vid.addEventListener('loadedmetadata', () => {
+      if (vid.videoHeight > vid.videoWidth) s.classList.add('vertical');
+      else s.classList.remove('vertical');
+    }, {once:true});
+  }
+});
 
 // ── SCROLL INFINITO ───────────────────────────────────────────────────────
 let offset = <?= count($posts) ?>;
@@ -327,7 +340,7 @@ function creaSlide(p) {
               :'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:8rem;opacity:.15;">🌊</div>'}
     </div>
     <div class="post-overlay"></div>
-    <span class="tipo-badge">🎬 Contenuto</span>
+    <span class="tipo-badge">${isVid?'🎬 VIDEO':'📷 FOTO'}</span>
     <div class="post-content">
       <p class="post-autore">📍 <strong>${esc(autore)}</strong> · ${esc(div.dataset.data)}</p>
       <h2 class="post-titolo">${esc(p.titolo||'')}</h2>
@@ -340,6 +353,14 @@ function creaSlide(p) {
       <div class="action-btn"><div class="icon">👁</div><span class="lbl">${p.visualizzazioni||0}</span></div>
       <button class="action-btn" onclick="condividi(${p.id_post})"><div class="icon">🔗</div><span class="lbl">Share</span></button>
     </div>`;
+  // Detect orientamento video
+  const vidEl = div.querySelector('video');
+  if (vidEl) {
+    vidEl.addEventListener('loadedmetadata', () => {
+      if (vidEl.videoHeight > vidEl.videoWidth) div.classList.add('vertical');
+      else div.classList.remove('vertical');
+    }, {once:true});
+  }
   return div;
 }
 
