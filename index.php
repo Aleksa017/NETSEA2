@@ -169,9 +169,8 @@ try {
   <div class="slide">
     <div class="slide-bg" style="background:<?= $grad ?>;">
       <?php if ($hasCover): ?>
-        <img src="<?= htmlspecialchars($nc['copertina']) ?>" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.4;">
+        <img src="<?= htmlspecialchars($nc['copertina']) ?>" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.85;">
       <?php endif; ?>
-      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding-right:20%;font-size:12rem;opacity:.12;user-select:none;"><?= $emoji ?></div>
     </div>
     <div class="slide-content">
       <span class="slide-tag">📰 News</span>
@@ -188,13 +187,20 @@ try {
   <!-- STRIP THUMBNAILS RIGHT -->
   <div class="slide-strip" id="slideStrip">
     <?php
-    $emojis_strip = ['🌊','🪸','🦑','🐋','🧫','🔬','🐟','🌿'];
     $tot = max(1, count($news_carousel));
     $max_strip = min($tot, 8);
     for ($i = 0; $i < $max_strip; $i++):
+      $nc_s = $news_carousel[$i];
+      $hasCover_s = !empty($nc_s['copertina']) && preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $nc_s['copertina']);
     ?>
-    <div class="strip-thumb <?= $i===0?'active':'' ?>" data-idx="<?= $i ?>">
-      <?= $emojis_strip[$i % count($emojis_strip)] ?>
+    <div class="strip-thumb <?= $i===0?'active':'' ?>" data-idx="<?= $i ?>"
+         style="<?= $hasCover_s ? 'background:none;' : '' ?>">
+      <?php if ($hasCover_s): ?>
+        <img src="<?= htmlspecialchars($nc_s['copertina']) ?>"
+             alt="" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
+      <?php else: ?>
+        <div style="width:100%;height:100%;background:linear-gradient(135deg,var(--ocean),var(--deep));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:rgba(114,215,240,.5);letter-spacing:.05em;">NEWS</div>
+      <?php endif; ?>
     </div>
     <?php endfor; ?>
     <!-- link alle news completo -->
@@ -352,11 +358,17 @@ try {
            data-liked="0"
            onclick="apriModalIndex(this)">
         <div class="feed-card-bg" style="background:<?= $grad_f ?>;">
-          <?php if ($isImg_f): ?>
-            <img src="<?= htmlspecialchars($f['url']) ?>" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.75;border-radius:0;">
-          <?php else: ?><?= $emoji_f ?><?php endif; ?>
+          <?php if ($isVid_f): ?>
+            <video src="<?= htmlspecialchars($f['url']) ?>"
+                   muted autoplay loop playsinline
+                   style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:0;"
+                   preload="metadata"></video>
+            <div style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(4,17,30,.6) 0%,transparent 50%);"></div>
+          <?php elseif ($isImg_f): ?>
+            <img src="<?= htmlspecialchars($f['url']) ?>" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.85;border-radius:0;">
+          <?php endif; ?>
         </div>
-        <?php if ($isVid_f): ?><div class="feed-card-play">▶</div><?php endif; ?>
+        <div class="feed-card-play" style="<?= $isVid_f ? '' : 'display:none;' ?>">▶</div>
         <div class="feed-card-overlay">
           <p class="feed-card-type"><?= $tipo_f ?></p>
           <p class="feed-card-title"><?= htmlspecialchars(mb_substr($f['titolo'],0,55)) ?></p>

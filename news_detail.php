@@ -15,8 +15,12 @@ $stmt->execute([$id]);
 $n = $stmt->fetch();
 if (!$n) { header("Location: news.php"); exit(); }
 
-// Incrementa visualizzazioni
-$connessione->prepare("UPDATE news SET visualizzazioni = visualizzazioni + 1 WHERE id_news = ?")->execute([$id]);
+// Incrementa visualizzazioni solo una volta per sessione per questa news
+$viewed_key = 'viewed_news_' . $id;
+if (empty($_SESSION[$viewed_key])) {
+    $connessione->prepare("UPDATE news SET visualizzazioni = visualizzazioni + 1 WHERE id_news = ?")->execute([$id]);
+    $_SESSION[$viewed_key] = true;
+}
 
 // Altre news dello stesso ricercatore
 $altri = $connessione->prepare("
@@ -43,11 +47,7 @@ $autore = trim(($n['nome_autore'] ?? '') . ' ' . ($n['cognome_autore'] ?? ''));
 <div class="cursor-ring" id="cursorRing"></div>
 <nav>
   <a href="index.php" class="nav-logo">
-    <svg viewBox="0 0 40 40" fill="none">
-      <circle cx="20" cy="20" r="18" fill="rgba(27,159,212,.15)" stroke="rgba(114,215,240,.3)" stroke-width="1"/>
-      <path d="M8 22 Q12 16 16 22 Q20 28 24 22 Q28 16 32 22" stroke="#72d7f0" stroke-width="2" fill="none" stroke-linecap="round"/>
-    </svg>
-    NetSea
+    <img src="logo.svg" alt="NetSea" style="height:56px;width:auto;object-fit:contain;display:block;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5));">
   </a>
   <a href="news.php" class="nav-back">← Tutte le news</a>
 </nav>
