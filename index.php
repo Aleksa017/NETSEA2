@@ -1,11 +1,23 @@
 <?php
 require 'config.php';
 
-$utente_loggato = isset($_SESSION['id']) ? [
+$utente_loggato = null;
+if (isset($_SESSION['id'])) {
+  // Popoliamo dati essenziali dall'array di sessione
+  $utente_loggato = [
     'nome'    => $_SESSION['nome']    ?? '',
     'cognome' => $_SESSION['cognome'] ?? '',
     'ruolo'   => $_SESSION['ruolo']   ?? 'utente',
-] : null;
+    'foto'    => null,
+  ];
+  // Proviamo a leggere il percorso della foto profilo dal DB (se presente)
+  try {
+    $stmt_u = $connessione->prepare('SELECT foto_profilo FROM utente WHERE id_utente = ?');
+    $stmt_u->execute([ (int)$_SESSION['id'] ]);
+    $r = $stmt_u->fetch();
+    if ($r && !empty($r['foto_profilo'])) $utente_loggato['foto'] = $r['foto_profilo'];
+  } catch (Exception $e) { /* ignore */ }
+}
 ?>
 
 <!DOCTYPE html>
@@ -50,21 +62,29 @@ $utente_loggato = isset($_SESSION['id']) ? [
 
   <div class="nav-actions">
     <!-- USER DROPDOWN TRIGGER -->
-    <div class="user-btn-wrap" id="userBtnWrap">
+      <div class="user-btn-wrap" id="userBtnWrap">
       <button class="nav-icon-btn" id="userBtn" title="Accedi o registrati" onclick="toggleDropdown(event)">
-        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-        </svg>
+        <?php if (!empty($utente_loggato['foto'])): ?>
+          <img src="<?= htmlspecialchars($utente_loggato['foto']) ?>" alt="Avatar" style="width:28px;height:28px;border-radius:50%;object-fit:cover;display:block;">
+        <?php else: ?>
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+        <?php endif; ?>
       </button>
       <?php if ($utente_loggato): ?>
       <div class="user-dropdown" id="userDropdown">
         <div class="user-drop-top">
           <div class="avatar">
-            <?php
-              if($utente_loggato['ruolo']==='admin') echo '⚙️';
-              elseif($utente_loggato['ruolo']==='ricercatore') echo '🔬';
-              else echo '👤';
-            ?>
+            <?php if (!empty($utente_loggato['foto'])): ?>
+              <img src="<?= htmlspecialchars($utente_loggato['foto']) ?>" alt="Avatar" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">
+            <?php else: ?>
+              <?php
+                if($utente_loggato['ruolo']==='admin') echo '⚙️';
+                elseif($utente_loggato['ruolo']==='ricercatore') echo '🔬';
+                else echo '👤';
+              ?>
+            <?php endif; ?>
           </div>
           <strong><?= htmlspecialchars($utente_loggato['nome'].' '.$utente_loggato['cognome']) ?></strong>
           <p><?= htmlspecialchars(ucfirst($utente_loggato['ruolo'])) ?></p>
@@ -169,8 +189,9 @@ try {
   <div class="slide">
     <div class="slide-bg" style="background:<?= $grad ?>;">
       <?php if ($hasCover): ?>
-        <img src="<?= htmlspecialchars($nc['copertina']) ?>" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.85;">
+        <img src="<?= htmlspecialchars($nc['copertina']) ?>" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.4;">
       <?php endif; ?>
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding-right:20%;font-size:12rem;opacity:.12;user-select:none;"><?= $emoji ?></div>
     </div>
     <div class="slide-content">
       <span class="slide-tag">📰 News</span>
@@ -187,20 +208,13 @@ try {
   <!-- STRIP THUMBNAILS RIGHT -->
   <div class="slide-strip" id="slideStrip">
     <?php
+    $emojis_strip = ['🌊','🪸','🦑','🐋','🧫','🔬','🐟','🌿'];
     $tot = max(1, count($news_carousel));
     $max_strip = min($tot, 8);
     for ($i = 0; $i < $max_strip; $i++):
-      $nc_s = $news_carousel[$i];
-      $hasCover_s = !empty($nc_s['copertina']) && preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $nc_s['copertina']);
     ?>
-    <div class="strip-thumb <?= $i===0?'active':'' ?>" data-idx="<?= $i ?>"
-         style="<?= $hasCover_s ? 'background:none;' : '' ?>">
-      <?php if ($hasCover_s): ?>
-        <img src="<?= htmlspecialchars($nc_s['copertina']) ?>"
-             alt="" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
-      <?php else: ?>
-        <div style="width:100%;height:100%;background:linear-gradient(135deg,var(--ocean),var(--deep));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:rgba(114,215,240,.5);letter-spacing:.05em;">NEWS</div>
-      <?php endif; ?>
+    <div class="strip-thumb <?= $i===0?'active':'' ?>" data-idx="<?= $i ?>">
+      <?= $emojis_strip[$i % count($emojis_strip)] ?>
     </div>
     <?php endfor; ?>
     <!-- link alle news completo -->
@@ -358,17 +372,11 @@ try {
            data-liked="0"
            onclick="apriModalIndex(this)">
         <div class="feed-card-bg" style="background:<?= $grad_f ?>;">
-          <?php if ($isVid_f): ?>
-            <video src="<?= htmlspecialchars($f['url']) ?>"
-                   muted autoplay loop playsinline
-                   style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:0;"
-                   preload="metadata"></video>
-            <div style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(4,17,30,.6) 0%,transparent 50%);"></div>
-          <?php elseif ($isImg_f): ?>
-            <img src="<?= htmlspecialchars($f['url']) ?>" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.85;border-radius:0;">
-          <?php endif; ?>
+          <?php if ($isImg_f): ?>
+            <img src="<?= htmlspecialchars($f['url']) ?>" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.75;border-radius:0;">
+          <?php else: ?><?= $emoji_f ?><?php endif; ?>
         </div>
-        <div class="feed-card-play" style="<?= $isVid_f ? '' : 'display:none;' ?>">▶</div>
+        <?php if ($isVid_f): ?><div class="feed-card-play">▶</div><?php endif; ?>
         <div class="feed-card-overlay">
           <p class="feed-card-type"><?= $tipo_f ?></p>
           <p class="feed-card-title"><?= htmlspecialchars(mb_substr($f['titolo'],0,55)) ?></p>
@@ -907,6 +915,55 @@ async function toggleLikeIndex() {
 }
 
 function escIdx(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// Personalizza il feed sulla home usando le keyword salvate in localStorage
+document.addEventListener('DOMContentLoaded', function(){
+  try {
+    const stored = JSON.parse(localStorage.getItem('netsea_interests') || '{}');
+    const keys = Object.keys(stored).sort((a,b)=>stored[b]-stored[a]).slice(0,5);
+    if (!keys.length) return; // niente da personalizzare
+    const interest = keys.join(',');
+    fetch('feed.php?json=1&interest=' + encodeURIComponent(interest))
+      .then(r=>r.json())
+      .then(posts=>{
+        if (!posts || !posts.length) return;
+        const track = document.querySelector('.feed-scroll-track');
+        if (!track) return;
+        // prendiamo fino a 8 elementi raccomandati
+        const take = posts.slice(0,8);
+        track.innerHTML = '';
+        take.forEach((p, i) => {
+          const div = document.createElement('div');
+          div.className = 'feed-card';
+          div.style.cursor = 'pointer';
+          div.dataset.id = p.id_post;
+          div.dataset.titolo = p.titolo || '';
+          div.dataset.desc = p.descrizione || '';
+          div.dataset.autore = ((p.nome||'') + ' ' + (p.cognome||'')).trim() || 'NetSea';
+          div.dataset.url = p.url || '';
+          div.dataset.likes = p.like_count || 0;
+          div.dataset.liked = '0';
+          const isVid = /\.(mp4|webm|ogg)$/i.test(p.url||'');
+          const isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(p.url||'');
+          const grad = ['linear-gradient(135deg,#041828,#0b3d5e)','linear-gradient(135deg,#002820,#005540)','linear-gradient(135deg,#200a20,#401040)','linear-gradient(135deg,#001830,#003060)','linear-gradient(135deg,#201000,#402000)','linear-gradient(135deg,#000820,#001540)','linear-gradient(135deg,#002010,#003020)','linear-gradient(135deg,#1a0f30,#2a1050)'][i%8];
+          const emoji = ['🦈','🪸','🐙','🐬','🐠','🌊','🐢','🦑'][i%8];
+          const tipo = isVid ? '📹 Video' : '📸 Foto';
+          div.innerHTML = `
+            <div class="feed-card-bg" style="background:${grad};">
+              ${isImg?`<img src="${escIdx(p.url)}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.75;border-radius:0;">`: emoji}
+            </div>
+            ${isVid?'<div class="feed-card-play">▶</div>':''}
+            <div class="feed-card-overlay">
+              <p class="feed-card-type">${tipo}</p>
+              <p class="feed-card-title">${escIdx((p.titolo||'').slice(0,55))}</p>
+              <p class="feed-card-author">${escIdx(div.dataset.autore)}</p>
+            </div>`;
+          div.addEventListener('click', function(){ apriModalIndex(this); });
+          track.appendChild(div);
+        });
+      }).catch(()=>{});
+  } catch(e) { /* ignore */ }
+});
 
 
 

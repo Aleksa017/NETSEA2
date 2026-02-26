@@ -1,5 +1,35 @@
 <?php
 require 'config.php';
+// Gestione eliminazione news (POST)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_news') {
+  if (!isset($_SESSION['id'])) {
+    header('HTTP/1.1 403 Forbidden'); exit('Forbidden');
+  }
+  $id_news = (int)($_POST['id_news'] ?? 0);
+  if (!$id_news) { header('Location: news.php'); exit(); }
+  try {
+    // Controlla autore della news
+    $chk = $connessione->prepare('SELECT id_ricercatore, copertina FROM news WHERE id_news = ?');
+    $chk->execute([$id_news]);
+    $row = $chk->fetch();
+    if (!$row) { header('Location: news.php'); exit(); }
+    $id_ric = (int)$row['id_ricercatore'];
+    $isAdmin = (isset($_SESSION['ruolo']) && $_SESSION['ruolo'] === 'admin');
+    $isAuthor = (isset($_SESSION['id']) && (int)$_SESSION['id'] === $id_ric);
+    if (!($isAdmin || $isAuthor)) { header('HTTP/1.1 403 Forbidden'); exit('Forbidden'); }
+    // Elimina copertina dal filesystem (opzionale)
+    if (!empty($row['copertina'])) {
+      $fpath = __DIR__ . '/' . $row['copertina'];
+      if (is_file($fpath)) @unlink($fpath);
+    }
+    // Elimina la news
+    $del = $connessione->prepare('DELETE FROM news WHERE id_news = ?');
+    $del->execute([$id_news]);
+    header('Location: news.php?deleted=1'); exit();
+  } catch (Exception $e) {
+    header('Location: news.php?deleted=0'); exit();
+  }
+}
 
 // Ricerca
 $q = trim($_GET['q'] ?? '');
@@ -76,26 +106,43 @@ $tutte_news = $stmt->fetchAll();
       $autore = trim(($n['nome_autore'] ?? '') . ' ' . ($n['cognome_autore'] ?? ''));
       $isImg  = !empty($n['copertina']) && preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $n['copertina']);
     ?>
-    <a href="news_detail.php?id=<?= $n['id_news'] ?>" class="news-card">
-      <div class="news-card-img">
-        <?php if ($isImg): ?>
-          <img src="<?= htmlspecialchars($n['copertina']) ?>" alt="">
-        <?php else: ?>
-          🌊
-        <?php endif; ?>
-      </div>
-      <div class="news-card-body">
-        <h3><?= htmlspecialchars($n['titolo']) ?></h3>
-        <p><?= htmlspecialchars(mb_substr($n['contenuto'] ?? '', 0, 150)) ?>…</p>
-        <div class="news-card-footer">
-          <span class="news-autore">🔬 <?= htmlspecialchars($autore) ?></span>
-          <div class="news-meta">
-            <span>📅 <?= $data ?></span>
-            <span>👁 <?= (int)($n['visualizzazioni'] ?? 0) ?></span>
+    <div class="news-card" style="position:relative;">
+      <a href="news_detail.php?id=<?= $n['id_news'] ?>" class="news-card-link" style="display:flex;gap:1rem;text-decoration:none;color:inherit;">
+        <div class="news-card-img">
+          <?php if ($isImg): ?>
+            <img src="<?= htmlspecialchars($n['copertina']) ?>" alt="">
+          <?php else: ?>
+            🌊
+          <?php endif; ?>
+        </div>
+        <div class="news-card-body">
+          <h3><?= htmlspecialchars($n['titolo']) ?></h3>
+          <p><?= htmlspecialchars(mb_substr($n['contenuto'] ?? '', 0, 150)) ?>…</p>
+          <div class="news-card-footer">
+            <span class="news-autore">🔬 <?= htmlspecialchars($autore) ?></span>
+            <div class="news-meta">
+              <span>📅 <?= $data ?></span>
+              <span>👁 <?= (int)($n['visualizzazioni'] ?? 0) ?></span>
+            </div>
           </div>
         </div>
-      </div>
-    </a>
+      </a>
+      <?php
+        // Mostra pulsante elimina solo se l'utente è admin o autore della news
+        $canDelete = false;
+        if (isset($_SESSION['id'])) {
+          if (isset($_SESSION['ruolo']) && $_SESSION['ruolo'] === 'admin') $canDelete = true;
+          elseif ((int)$_SESSION['id'] === (int)($n['id_ricercatore'] ?? 0)) $canDelete = true;
+        }
+      ?>
+      <?php if ($canDelete): ?>
+        <form method="POST" style="position:absolute;top:8px;right:8px;" onsubmit="return confirm('Eliminare questa news? Questa operazione è irreversibile.');">
+          <input type="hidden" name="action" value="delete_news">
+          <input type="hidden" name="id_news" value="<?= (int)$n['id_news'] ?>">
+          <button type="submit" title="Elimina" style="background:transparent;border:1px solid rgba(255,255,255,.08);color:#f66;padding:.35rem .5rem;border-radius:6px;cursor:pointer;">Elimina</button>
+        </form>
+      <?php endif; ?>
+    </div>
     <?php endforeach; ?>
   <?php endif; ?>
 </div>

@@ -55,14 +55,6 @@ $messaggio_mail = "Ciao, il tuo profilo ricercatore è stato approvato! Ora puoi
     }
 }
 
-// AZIONE DI RIFIUTO
-if (isset($_GET['rifiuta'])) {
-    $id_req = (int)$_GET['rifiuta'];
-    $connessione->prepare("UPDATE Richiesta_Ricercatore SET stato = 'rifiutato' WHERE id_richiesta = ?")->execute([$id_req]);
-    header("Location: admin.php?success=rifiutato");
-    exit();
-}
-
 // flash messages da mostrare in pagina
 $flash = [];
 if (isset($_GET['success'])) {
@@ -88,6 +80,8 @@ $richieste = $connessione->query("
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="cursor" id="cursor"></div>
+    <div class="cursor-ring" id="cursorRing"></div>
     <div class="container">
         <?php foreach($flash as $msg): ?>
             <p class="alert alert-success">✅ <?= htmlspecialchars($msg) ?></p>
@@ -98,78 +92,34 @@ $richieste = $connessione->query("
             <p style="color:var(--muted);margin:1.5rem 0;">Nessuna richiesta in attesa di approvazione.</p>
         <?php else: ?>
             <div style="overflow-x:auto;">
-                <div style="display:flex;flex-direction:column;gap:1.5rem;">
-                <?php foreach($richieste as $r): ?>
-                <div style="background:rgba(11,61,94,.3);border:1px solid rgba(114,215,240,.15);border-radius:14px;padding:1.5rem;">
-
-                  <!-- Intestazione richiedente -->
-                  <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.25rem;">
-                    <div>
-                      <p style="color:var(--pearl);font-size:1.1rem;font-weight:500;margin-bottom:.25rem;">
-                        👤 <?= htmlspecialchars($r['nome'] . ' ' . $r['cognome']) ?>
-                      </p>
-                      <p style="color:var(--wave);font-size:.82rem;">🎓 <?= htmlspecialchars($r['qualifica_dichiarata'] ?? 'N/D') ?></p>
-                      <p style="color:var(--muted);font-size:.82rem;">🏛️ <?= htmlspecialchars($r['ente_dichiarato'] ?? 'N/D') ?></p>
-                      <?php if (!empty($r['motivazione'])): ?>
-                      <p style="color:rgba(197,228,245,.7);font-size:.8rem;margin-top:.5rem;font-style:italic;">
-                        "<?= htmlspecialchars(mb_substr($r['motivazione'], 0, 200)) ?><?= mb_strlen($r['motivazione'])>200?'…':'' ?>"
-                      </p>
-                      <?php endif; ?>
-                      <p style="color:rgba(114,215,240,.4);font-size:.72rem;margin-top:.4rem;">
-                        Richiesta #<?= $r['id_richiesta'] ?>
-                        <?= $r['data_richiesta'] ? ' · ' . date('d M Y', strtotime($r['data_richiesta'])) : '' ?>
-                      </p>
-                    </div>
-                  </div>
-
-                  <!-- File allegati -->
-                  <div style="display:flex;flex-wrap:wrap;gap:.75rem;margin-bottom:1.25rem;">
-                    <?php if (!empty($r['certificato_path'])): ?>
-                    <a href="<?= htmlspecialchars($r['certificato_path']) ?>" target="_blank"
-                       style="display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1rem;background:rgba(27,159,212,.1);border:1px solid rgba(27,159,212,.25);border-radius:8px;color:var(--wave);text-decoration:none;font-size:.82rem;transition:background .2s;"
-                       onmouseover="this.style.background='rgba(27,159,212,.2)'" onmouseout="this.style.background='rgba(27,159,212,.1)'">
-                      📄 Certificato / Documento
-                    </a>
-                    <?php else: ?>
-                    <span style="font-size:.78rem;color:var(--muted);padding:.5rem .75rem;border:1px solid rgba(114,215,240,.08);border-radius:8px;">📄 Nessun certificato allegato</span>
-                    <?php endif; ?>
-
-                    <?php if (!empty($r['badge_path'])): ?>
-                    <a href="<?= htmlspecialchars($r['badge_path']) ?>" target="_blank"
-                       style="display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1rem;background:rgba(44,184,155,.1);border:1px solid rgba(44,184,155,.25);border-radius:8px;color:#2cb89b;text-decoration:none;font-size:.82rem;transition:background .2s;"
-                       onmouseover="this.style.background='rgba(44,184,155,.2)'" onmouseout="this.style.background='rgba(44,184,155,.1)'">
-                      🪪 Badge / Tessera
-                    </a>
-                    <?php else: ?>
-                    <span style="font-size:.78rem;color:var(--muted);padding:.5rem .75rem;border:1px solid rgba(114,215,240,.08);border-radius:8px;">🪪 Nessun badge allegato</span>
-                    <?php endif; ?>
-                  </div>
-
-                  <!-- Bottoni azione -->
-                  <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
-                    <a href="admin.php?approva=<?= $r['id_richiesta'] ?>"
-                       onclick="return confirm('Approvare <?= htmlspecialchars(addslashes($r['nome'].' '.$r['cognome'])) ?>?')"
-                       style="display:inline-flex;align-items:center;gap:.4rem;padding:.6rem 1.4rem;background:rgba(44,184,155,.15);border:1px solid rgba(44,184,155,.35);border-radius:8px;color:#2cb89b;text-decoration:none;font-size:.85rem;font-weight:600;transition:background .2s;"
-                       onmouseover="this.style.background='rgba(44,184,155,.28)'" onmouseout="this.style.background='rgba(44,184,155,.15)'">
-                      ✓ Approva
-                    </a>
-                    <a href="admin.php?rifiuta=<?= $r['id_richiesta'] ?>"
-                       onclick="return confirm('Rifiutare la richiesta di <?= htmlspecialchars(addslashes($r['nome'].' '.$r['cognome'])) ?>?')"
-                       style="display:inline-flex;align-items:center;gap:.4rem;padding:.6rem 1.4rem;background:rgba(232,131,106,.1);border:1px solid rgba(232,131,106,.3);border-radius:8px;color:#e8836a;text-decoration:none;font-size:.85rem;font-weight:600;transition:background .2s;"
-                       onmouseover="this.style.background='rgba(232,131,106,.22)'" onmouseout="this.style.background='rgba(232,131,106,.1)'">
-                      ✕ Rifiuta
-                    </a>
-                  </div>
-
-                </div>
-                <?php endforeach; ?>
-                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Qualifica</th>
+                            <th>Ente</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach($richieste as $r): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($r['nome'] . " " . $r['cognome']) ?></td>
+                                <td><?= htmlspecialchars($r['qualifica_dichiarata']) ?></td>
+                                <td><?= htmlspecialchars($r['ente_dichiarato'] ?? 'N/D') ?></td>
+                                <td>
+                                    <a href="admin.php?approva=<?= $r['id_richiesta'] ?>" class="btn btn-approve" onclick="return confirm('Approvare questo ricercatore?')">✓ Approva</a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
         <?php endif; ?>
         
         <div style="margin-top:2rem;">
             <a href="index.php" class="btn btn-back">← Torna alla Home</a>
         </div>
-    </div>
+</div>
 </body>
 </html>

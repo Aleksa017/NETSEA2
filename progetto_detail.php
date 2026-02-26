@@ -35,6 +35,14 @@ $data_inizio = $p['data_i'] ? date('d M Y', strtotime($p['data_i'])) : '—';
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= htmlspecialchars($p['titolo']) ?> — NetSea</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+  /* Minimal styles per modal donazione */
+  .donation-overlay{position:fixed;inset:0;background:rgba(4,17,30,.6);display:flex;align-items:center;justify-content:center;z-index:10000}
+  .donation-modal{background:#071e33;color:#c5e4f5;border-radius:10px;padding:1.25rem;max-width:520px;width:90%;box-shadow:0 8px 30px rgba(0,0,0,.6);position:relative}
+  .donation-close{position:absolute;right:.5rem;top:.5rem;background:none;border:none;color:#c5e4f5;font-size:1.1rem;cursor:pointer}
+  .pm-list{display:flex;gap:.5rem;margin-top:.5rem}
+  .pm-btn{background:rgba(27,159,212,.15);border:1px solid rgba(114,215,240,.12);color:var(--text);padding:.5rem .75rem;border-radius:8px;cursor:pointer}
+  </style>
 </head>
 <body>
 <div class="cursor" id="cursor"></div>
@@ -85,13 +93,13 @@ $data_inizio = $p['data_i'] ? date('d M Y', strtotime($p['data_i'])) : '—';
         <h3>💚 Sostieni questo progetto</h3>
         <p>Il tuo contributo va direttamente alla ricerca e alla protezione degli ecosistemi marini.</p>
         <?php if (isset($_SESSION['id'])): ?>
-          <form method="POST" class="dona-form">
+          <form method="POST" class="dona-form" id="donaForm">
             <div class="dona-input-wrap">
               <span>€</span>
               <input type="number" name="importo" class="dona-input"
                      placeholder="10.00" min="1" max="10000" step="0.01" required>
             </div>
-            <button type="submit" name="dona" class="btn-dona">💚 Dona ora</button>
+            <button type="button" id="donaBtn" class="btn-dona">💚 Dona ora</button>
             <p class="hint">Min. €1 — Max. €10.000</p>
           </form>
         <?php else: ?>
@@ -137,10 +145,171 @@ $data_inizio = $p['data_i'] ? date('d M Y', strtotime($p['data_i'])) : '—';
 </div>
 
 <script>
-const cur=document.getElementById('cursor'),ring=document.getElementById('cursorRing');
-let mx=0,my=0,rx=0,ry=0;
-document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.cssText=`left:${mx}px;top:${my}px`;});
-(function loop(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.cssText=`left:${rx}px;top:${ry}px`;requestAnimationFrame(loop);})();
+// AJAX per mostrare dettagli metodo di pagamento in overlay
+// Flusso:
+// 1) intercettiamo il click su un bottone `.pm-btn` (delegation sull'intero documento)
+// 2) invochiamo `fetch()` verso `api/donation_method.php` con `method` e `id` del progetto
+// 3) riceviamo JSON { html: '...' } e inseriamo l'HTML nell'overlay creato dinamicamente
+// 4) gestiamo errori di rete e risposta non valida
+(function(){
+  // helper per query selector
+  function qs(sel){ return document.querySelector(sel); }
+  const overlayId = 'donationOverlay';
+  const form = qs('#donaForm');
+  const donaBtn = qs('#donaBtn');
+  const pid = <?= (int)$id ?>;
+
+  // Crea overlay (ma non lo mostra) — lo riusiamo
+  function createOverlay(){
+    let ov = qs('#' + overlayId);
+    if (ov) return ov;
+    ov = document.createElement('div');
+    ov.id = overlayId;
+    ov.className = 'donation-overlay';
+    ov.innerHTML = '<div class="donation-modal"><button class="donation-close">✕</button><div class="donation-content"></div></div>';
+    document.body.appendChild(ov);
+    ov.addEventListener('click', function(ev){ if (ev.target === ov) ov.style.display = 'none'; });
+    ov.querySelector('.donation-close').addEventListener('click', function(){ ov.style.display = 'none'; });
+    return ov;
+  }
+
+  // Mostra il modal con i pulsanti di metodo (richiesto solo dopo click su Dona ora)
+  function showMethodSelection(amount){
+    const ov = createOverlay();
+    const html = `
+      <h3>Seleziona metodo di pagamento</h3>
+      <p>Importo: <strong>€ ${Number(amount).toFixed(2)}</strong></p>
+      <div class="pm-list">
+        <button class="pm-btn" data-method="paypal">PayPal</button>
+        <button class="pm-btn" data-method="card">Carta di credito</button>
+        <button class="pm-btn" data-method="bonifico">Bonifico</button>
+      </div>
+    `;
+    ov.querySelector('.donation-content').innerHTML = html;
+    ov.style.display = 'flex';
+
+    // attach listeners to the buttons inside the modal
+    ov.querySelectorAll('.pm-btn').forEach(btn => {
+      btn.addEventListener('click', function(){
+        const method = this.getAttribute('data-method');
+        // carichiamo i dettagli via AJAX
+        fetch(`api/donation_method.php?method=${encodeURIComponent(method)}&id=${pid}`)
+          .then(r => { if (!r.ok) throw new Error('Network'); return r.json(); })
+          .then(data => {
+            if (!data.html) { alert('Errore caricamento dettagli pagamento'); return; }
+            // Inseriamo i dettagli; il contenuto verrà aggiornato più in basso
+
+            // Aggiungiamo formattazione automatica per numero carta e scadenza (se presenti)
+            function attachFormatting(content){
+              const cardNumEl = content.querySelector('#card_number');
+              const expEl = content.querySelector('#card_exp');
+              if (cardNumEl){
+                // formatta gruppi di 4 cifre: 4242 4242 4242 4242
+                cardNumEl.addEventListener('input', function(){
+                  const digits = this.value.replace(/\D/g,'').slice(0,19);
+                  const parts = digits.match(/.{1,4}/g);
+                  this.value = parts ? parts.join(' ') : digits;
+                });
+              }
+              if (expEl){
+                // formatta MM/AA inserendo la slash automaticamente
+                expEl.addEventListener('input', function(){
+                  const digits = this.value.replace(/\D/g,'').slice(0,4);
+                  if (digits.length <= 2) this.value = digits;
+                  else this.value = digits.slice(0,2) + '/' + digits.slice(2);
+                });
+                expEl.addEventListener('blur', function(){
+                  const digits = this.value.replace(/\D/g,'');
+                  if (digits.length === 2) this.value = digits + '/';
+                });
+              }
+            }
+
+            const content = ov.querySelector('.donation-content');
+            content.innerHTML = data.html + `<p style="margin-top:.75rem;"><button class="confirm-pay btn-dona">Conferma e Paga</button> <button class="cancel-pay" style="margin-left:.5rem;">Annulla</button></p>`;
+
+            // attach formatting handlers to newly inserted inputs
+            attachFormatting(content);
+
+            // Conferma: aggiungiamo controllo dei campi necessari e submit del form
+            content.querySelector('.confirm-pay').addEventListener('click', function(){
+              // assicuriamoci che l'importo sia presente
+              const impEl = form.querySelector('input[name="importo"]');
+              if (!impEl || Number(impEl.value) < 1) { alert('Importo non valido'); return; }
+
+              // controlli specifici per il metodo 'card'
+              if (method === 'card'){
+                const cardNumEl = content.querySelector('#card_number');
+                const expEl = content.querySelector('#card_exp');
+                const cvcEl = content.querySelector('#card_cvc');
+                const cardNum = cardNumEl ? cardNumEl.value.trim() : '';
+                const exp = expEl ? expEl.value.trim() : '';
+                const cvc = cvcEl ? cvcEl.value.trim() : '';
+
+                // Validazione numero: solo verifica che contenga tra 13 e 19 cifre
+                const digitsOnly = cardNum.replace(/\D/g, '');
+                if (!/^[0-9]{13,19}$/.test(digitsOnly)) { alert('Numero carta non valido (deve contenere 13–19 cifre)'); return; }
+
+                // Validazione scadenza MM/AA e non scaduta
+                if (!/^\s*\d{2}\/\d{2}\s*$/.test(exp)) { alert('Formato data scadenza non valido (MM/AA)'); return; }
+                const [mm, yy] = exp.split('/').map(s=>parseInt(s,10));
+                if (!(mm >=1 && mm <=12)) { alert('Mese di scadenza non valido'); return; }
+                const now = new Date();
+                const fullYear = 2000 + yy;
+                const expDate = new Date(fullYear, mm, 0, 23,59,59);
+                if (expDate < now) { alert('Carta scaduta'); return; }
+
+                // CVC: 3 o 4 cifre
+                if (!/^[0-9]{3,4}$/.test(cvc)) { alert('CVC non valido'); return; }
+              }
+
+              // impostiamo campi nascosti nel form e submit
+              let methodInput = form.querySelector('input[name="method"]');
+              if (!methodInput) { methodInput = document.createElement('input'); methodInput.type='hidden'; methodInput.name='method'; form.appendChild(methodInput); }
+              methodInput.value = method;
+              let donaInput = form.querySelector('input[name="dona"]');
+              if (!donaInput) { donaInput = document.createElement('input'); donaInput.type='hidden'; donaInput.name='dona'; donaInput.value='1'; form.appendChild(donaInput); }
+
+              form.submit();
+            });
+
+            // Annulla ritorna alla selezione dei metodi
+            const cancel = content.querySelector('.cancel-pay');
+            if (cancel) cancel.addEventListener('click', function(){ showMethodSelection(Number(ov.querySelector('strong')?.textContent.replace(/[€\s]/g,'')||0)); });
+          })
+          .catch(err => { console.error(err); alert('Errore caricamento dettagli pagamento'); });
+      });
+    });
+  }
+
+  // Intercettiamo il click su Dona ora e mostriamo il modal
+  if (donaBtn && form) {
+    donaBtn.addEventListener('click', function(e){
+      const impEl = form.querySelector('input[name="importo"]');
+      const importo = impEl ? Number(impEl.value) : 0;
+      if (!importo || importo < 1) { alert('Inserisci un importo valido (minimo 1€).'); return; }
+      showMethodSelection(importo);
+    });
+  }
+})();
+
+// --- Script cursore (esistente) ---
+// Questo codice mantiene il cursore personalizzato già presente nel markup: il dot segue
+// immediatamente la posizione del mouse mentre il ring lo insegue con interpolazione
+const cur = document.getElementById('cursor'), ring = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  // aggiorniamo la posizione del punto (cursor)
+  cur.style.cssText = `left:${mx}px;top:${my}px`;
+});
+(function loop(){
+  // interpoliamo la posizione del ring per ottenere un effetto di ritardo/smooth
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.cssText = `left:${rx}px;top:${ry}px`;
+  requestAnimationFrame(loop);
+})();
 </script>
 </body>
 </html>

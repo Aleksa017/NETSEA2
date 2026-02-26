@@ -83,6 +83,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $success = true;
         }
     }
+    elseif ($action === 'upload_foto') {
+        if (empty($_FILES['foto']) || $_FILES['foto']['error'] !== UPLOAD_ERR_OK) {
+            $errors[] = 'Errore nel caricamento del file.';
+        } else {
+            $f = $_FILES['foto'];
+            if ($f['size'] > 2 * 1024 * 1024) { // 2MB
+                $errors[] = 'Il file è troppo grande (max 2MB).';
+            } else {
+                $finfo = new finfo(FILEINFO_MIME_TYPE);
+                $mime = $finfo->file($f['tmp_name']);
+                $allowed = [
+                    'image/jpeg' => 'jpg',
+                    'image/png'  => 'png',
+                    'image/gif'  => 'gif'
+                ];
+                if (!isset($allowed[$mime])) {
+                    $errors[] = 'Formato non supportato. Usa JPG, PNG o GIF.';
+                } else {
+                    $ext = $allowed[$mime];
+                    $dir = __DIR__ . '/uploads/profile';
+                    if (!is_dir($dir)) mkdir($dir, 0755, true);
+                    $basename = $id_utente . '_' . time() . '.' . $ext;
+                    $target = $dir . '/' . $basename;
+                    if (!move_uploaded_file($f['tmp_name'], $target)) {
+                        $errors[] = 'Impossibile salvare il file.';
+                    } else {
+                        // Salva percorso relativo nel DB
+                        $relPath = 'uploads/profile/' . $basename;
+                        try {
+                            $upd = $connessione->prepare("UPDATE utente SET foto_profilo = ? WHERE id_utente = ?");
+                            $upd->execute([$relPath, $id_utente]);
+                            $success = true;
+                            // ricarica i dati utente
+                            $stmt->execute([$id_utente]);
+                            $utente = $stmt->fetch();
+                        } catch (Exception $e) {
+                            $errors[] = 'Errore salvataggio informazioni: ' . $e->getMessage();
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 ?>
