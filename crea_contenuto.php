@@ -295,7 +295,7 @@ fileInput.addEventListener('change', function() {
   const f = this.files[0]; if (!f) return;
 
   const tipo  = tipoSelezionato();
-  const maxMB = tipo ? (formati[tipo]?.maxMB ?? 20) : 20;
+  const maxMB = tipo ? (formati[tipo]?.maxMB ?? 500) : 500;
   const sizeMB = (f.size / 1024 / 1024).toFixed(1);
 
   fcName.textContent = f.name;

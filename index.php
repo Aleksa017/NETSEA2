@@ -208,13 +208,19 @@ try {
   <!-- STRIP THUMBNAILS RIGHT -->
   <div class="slide-strip" id="slideStrip">
     <?php
-    $emojis_strip = ['🌊','🪸','🦑','🐋','🧫','🔬','🐟','🌿'];
     $tot = max(1, count($news_carousel));
     $max_strip = min($tot, 8);
     for ($i = 0; $i < $max_strip; $i++):
+      $nc_s = $news_carousel[$i];
+      $hasCover_s = !empty($nc_s['copertina']) && preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $nc_s['copertina']);
     ?>
     <div class="strip-thumb <?= $i===0?'active':'' ?>" data-idx="<?= $i ?>">
-      <?= $emojis_strip[$i % count($emojis_strip)] ?>
+      <?php if ($hasCover_s): ?>
+        <img src="<?= htmlspecialchars($nc_s['copertina']) ?>"
+             alt="" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
+      <?php else: ?>
+        <div style="width:100%;height:100%;background:linear-gradient(135deg,var(--ocean),var(--deep));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:rgba(114,215,240,.5);letter-spacing:.05em;">NEWS</div>
+      <?php endif; ?>
     </div>
     <?php endfor; ?>
     <!-- link alle news completo -->
@@ -372,9 +378,15 @@ try {
            data-liked="0"
            onclick="apriModalIndex(this)">
         <div class="feed-card-bg" style="background:<?= $grad_f ?>;">
-          <?php if ($isImg_f): ?>
-            <img src="<?= htmlspecialchars($f['url']) ?>" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.75;border-radius:0;">
-          <?php else: ?><?= $emoji_f ?><?php endif; ?>
+          <?php if ($isVid_f): ?>
+            <video src="<?= htmlspecialchars($f['url']) ?>"
+                   muted autoplay loop playsinline preload="auto"
+                   style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:0;"
+                   onerror="this.style.display='none'"></video>
+            <div style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(4,17,30,.65) 0%,transparent 55%);"></div>
+          <?php elseif ($isImg_f): ?>
+            <img src="<?= htmlspecialchars($f['url']) ?>" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.85;border-radius:0;">
+          <?php endif; ?>
         </div>
         <?php if ($isVid_f): ?><div class="feed-card-play">▶</div><?php endif; ?>
         <div class="feed-card-overlay">
@@ -926,7 +938,7 @@ document.addEventListener('DOMContentLoaded', function(){
     fetch('feed.php?json=1&interest=' + encodeURIComponent(interest))
       .then(r=>r.json())
       .then(posts=>{
-        if (!posts || !posts.length) return;
+        if (!posts || posts.length < 3) return; // troppo pochi → tieni le card PHP originali
         const track = document.querySelector('.feed-scroll-track');
         if (!track) return;
         // prendiamo fino a 8 elementi raccomandati
@@ -950,7 +962,15 @@ document.addEventListener('DOMContentLoaded', function(){
           const tipo = isVid ? '📹 Video' : '📸 Foto';
           div.innerHTML = `
             <div class="feed-card-bg" style="background:${grad};">
-              ${isImg?`<img src="${escIdx(p.url)}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.75;border-radius:0;">`: emoji}
+              ${isVid
+                ? `<video src="${escIdx(p.url)}" muted autoplay loop playsinline preload="auto"
+                       style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:0;"
+                       onerror="this.style.display='none'"></video>
+                   <div style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(4,17,30,.65) 0%,transparent 55%);"></div>`
+                : isImg
+                  ? `<img src="${escIdx(p.url)}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.85;border-radius:0;">`
+                  : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:3rem;opacity:.4;">${emoji}</div>`
+              }
             </div>
             ${isVid?'<div class="feed-card-play">▶</div>':''}
             <div class="feed-card-overlay">

@@ -175,7 +175,7 @@ if (isset($_SESSION['id']) && !empty($posts)) {
 
   <div class="post-bg">
     <?php if ($isVideo): ?>
-      <video src="<?= htmlspecialchars($p['url']) ?>" loop muted playsinline preload="none"></video>
+      <video src="<?= htmlspecialchars($p['url']) ?>" loop muted playsinline preload="auto" class="feed-video"></video>
     <?php elseif ($isImg): ?>
       <img src="<?= htmlspecialchars($p['url']) ?>" alt="" loading="lazy">
     <?php else: ?>
@@ -190,6 +190,13 @@ if (isset($_SESSION['id']) && !empty($posts)) {
     <h2 class="post-titolo"><?= htmlspecialchars($p['titolo']) ?></h2>
     <p class="post-desc"><?= htmlspecialchars($desc_short) ?><?= mb_strlen($p['descrizione'] ?? '') > 120 ? '…' : '' ?></p>
   </div>
+
+  <!-- Pulsante audio fisso in alto a destra sulla slide -->
+  <?php if ($isVideo): ?>
+  <button class="audio-btn" id="audioBtn_<?= $p['id_post'] ?>" onclick="event.stopPropagation();toggleAudio(this)" title="Audio">
+    🔇
+  </button>
+  <?php endif; ?>
 
   <div class="post-actions" onclick="event.stopPropagation()">
     <button class="action-btn like-btn <?= $liked ? 'liked' : '' ?>"
@@ -261,7 +268,16 @@ function apriModal(slide) {
   // Media
   const mBox = document.getElementById('modalMedia');
   if (isVid) {
-    mBox.innerHTML = `<video class="modal-media" src="${esc(url)}" controls autoplay loop></video>`;
+    mBox.innerHTML = `<video class="modal-media" src="${esc(url)}" controls loop style="background:#000;"></video>`;
+    // Avvia il video col volume — il browser lo permette perché siamo dentro un evento click
+    const vid = mBox.querySelector('video');
+    if (vid) {
+      vid.volume = 1;
+      vid.play().catch(() => {
+        // fallback: se autoplay ancora bloccato mostra un overlay "tocca per sentire"
+        vid.muted = false;
+      });
+    }
   } else if (isImg) {
     mBox.innerHTML = `<img class="modal-media" src="${esc(url)}" alt="">`;
   } else {
@@ -353,12 +369,30 @@ function condividi(id) {
 }
 
 // ── AUTOPLAY VIDEO ────────────────────────────────────────────────────────
+// Stato audio globale — inizia muto (richiesto da browser per autoplay)
+let globalMuted = true;
+
+function toggleAudio(btn) {
+  globalMuted = !globalMuted;
+  // Aggiorna tutti i video presenti
+  document.querySelectorAll('.feed-video').forEach(v => { v.muted = globalMuted; });
+  // Aggiorna tutte le icone
+  document.querySelectorAll('.audio-btn').forEach(b => { b.textContent = globalMuted ? '🔇' : '🔊'; });
+}
+
 const observer = new IntersectionObserver(entries => {
   entries.forEach(e => {
     const vid = e.target.querySelector('video');
     if (!vid) return;
-    if (e.isIntersecting) vid.play().catch(()=>{});
-    else { vid.pause(); vid.currentTime=0; }
+    if (e.isIntersecting) {
+      vid.muted = globalMuted;
+      vid.play().catch(()=>{});
+      // Sincronizza l'icona del bottone su questa slide
+      const btn = e.target.querySelector('.audio-btn');
+      if (btn) btn.textContent = globalMuted ? '🔇' : '🔊';
+    } else {
+      vid.pause(); vid.currentTime = 0;
+    }
   });
 },{threshold:0.7});
 document.querySelectorAll('.post-slide').forEach(s=>{
@@ -467,7 +501,7 @@ function creaSlide(p) {
   const autore=div.dataset.autore;
   div.innerHTML=`
     <div class="post-bg">
-      ${isVid?`<video src="${esc(p.url)}" loop muted playsinline preload="none"></video>`
+      ${isVid?`<video src="${esc(p.url)}" loop muted playsinline preload="auto" class="feed-video"></video>`
               :isImg?`<img src="${esc(p.url)}" alt="" loading="lazy">`
               :'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:8rem;opacity:.15;">🌊</div>'}
     </div>

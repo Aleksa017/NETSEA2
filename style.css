@@ -35,6 +35,7 @@ body {
   background: var(--ink);
   color: var(--text);
   overflow-x: hidden;
+  cursor: none;
 }
 a { color: var(--wave); text-decoration: none; transition: color .2s; }
 a:hover { color: var(--foam); }
@@ -627,6 +628,17 @@ footer::before { content: ''; position: absolute; inset: 0; background: radial-g
 .post-bg img  { width: 100%; height: 100%; object-fit: cover; display: block; }
 .post-bg video { width: 100%; height: 100%; object-fit: contain; display: block; background: #000; }
 .post-overlay { position: absolute; bottom: 0; left: 0; right: 0; height: 55%; background: linear-gradient(0deg,rgba(4,17,30,.92) 0%,rgba(4,17,30,.4) 60%,transparent 100%); z-index: 1; pointer-events: none; }
+.audio-btn {
+  position: absolute; top: 1rem; left: 1rem; z-index: 10;
+  width: 42px; height: 42px; border-radius: 50%;
+  background: rgba(4,17,30,.65); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.18);
+  color: #fff; font-size: 1.1rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .2s, transform .15s;
+}
+.audio-btn:hover { background: rgba(27,159,212,.4); transform: scale(1.1); }
+
 .post-content { position: absolute; bottom: 0; left: 0; z-index: 2; padding: 1.5rem 5rem 2rem 1.5rem; width: 100%; max-width: 550px; }
 .post-autore { font-size: .82rem; color: rgba(255,255,255,.7); margin-bottom: .5rem; }
 .post-autore strong { color: #fff; }
@@ -651,7 +663,7 @@ footer::before { content: ''; position: absolute; inset: 0; background: radial-g
 .carousel-track { display: flex; height: 100%; transition: transform .9s cubic-bezier(.77,0,.175,1); }
 .slide { min-width: 100%; height: 100%; position: relative; flex-shrink: 0; }
 .slide-bg { position: absolute; inset: 0; background-size: cover; background-position: center; }
-.slide-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to right,rgba(4,17,30,.92) 0%,rgba(4,17,30,.6) 50%,rgba(4,17,30,.1) 100%); }
+.slide-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to right,rgba(4,17,30,.88) 0%,rgba(4,17,30,.55) 45%,rgba(4,17,30,.05) 100%); }
 .slide-content { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 5rem; max-width: 680px; }
 .slide-tag { display: inline-block; padding: .3rem .9rem; border-radius: 20px; font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; background: rgba(27,159,212,.2); border: 1px solid rgba(27,159,212,.35); color: var(--wave); margin-bottom: 1rem; width: fit-content; }
 .slide-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(2rem,4vw,3.2rem); font-weight: 400; line-height: 1.15; color: var(--pearl); margin-bottom: .85rem; }
