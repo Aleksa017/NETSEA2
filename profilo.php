@@ -138,8 +138,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>👤 Il Mio Profilo</h1>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<nav>
+  <a href="index.php" class="nav-logo"><img src="logo.svg" alt="NetSea" style="height:56px;width:auto;object-fit:contain;display:block;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5));"></a>
+  <a href="javascript:history.back()" class="nav-back">← Indietro</a>
+</nav>
+
+<div class="main" style="max-width:900px;margin:0 auto;padding:5.5rem 1.5rem 4rem;">
+  <h1 style="font-family:'Cormorant Garamond',serif;font-size:2.5rem;font-weight:400;color:var(--pearl);margin-bottom:1.5rem;">Il mio profilo</h1>
 
         <?php if ($success): ?>
             <p class="alert alert-success">✅ Profilo aggiornato con successo!</p>
@@ -264,6 +271,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         <div>
             <a href="index.php" class="btn btn-secondary btn-back" style="text-decoration:none;">← Torna alla home</a>
         </div>
-    </div>
+</div>
 </body>
 </html>

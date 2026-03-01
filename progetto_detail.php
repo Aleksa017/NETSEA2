@@ -48,13 +48,7 @@ $data_inizio = $p['data_i'] ? date('d M Y', strtotime($p['data_i'])) : '—';
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
 <nav>
-  <a href="index.php" class="nav-logo">
-    <svg viewBox="0 0 40 40" fill="none">
-      <circle cx="20" cy="20" r="18" fill="rgba(27,159,212,.15)" stroke="rgba(114,215,240,.3)" stroke-width="1"/>
-      <path d="M8 22 Q12 16 16 22 Q20 28 24 22 Q28 16 32 22" stroke="#72d7f0" stroke-width="2" fill="none" stroke-linecap="round"/>
-    </svg>
-    NetSea
-  </a>
+  <a href="index.php" class="nav-logo"><img src="logo.svg" alt="NetSea" style="height:56px;width:auto;object-fit:contain;display:block;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5));"></a>
   <a href="progetti.php" class="nav-back">← Tutti i progetti</a>
 </nav>
 
@@ -192,47 +186,73 @@ $data_inizio = $p['data_i'] ? date('d M Y', strtotime($p['data_i'])) : '—';
     ov.querySelectorAll('.pm-btn').forEach(btn => {
       btn.addEventListener('click', function(){
         const method = this.getAttribute('data-method');
-        // carichiamo i dettagli via AJAX
-        fetch(`api/donation_method.php?method=${encodeURIComponent(method)}&id=${pid}`)
-          .then(r => { if (!r.ok) throw new Error('Network'); return r.json(); })
-          .then(data => {
-            if (!data.html) { alert('Errore caricamento dettagli pagamento'); return; }
-            // Inseriamo i dettagli; il contenuto verrà aggiornato più in basso
 
-            // Aggiungiamo formattazione automatica per numero carta e scadenza (se presenti)
-            function attachFormatting(content){
-              const cardNumEl = content.querySelector('#card_number');
-              const expEl = content.querySelector('#card_exp');
-              if (cardNumEl){
-                // formatta gruppi di 4 cifre: 4242 4242 4242 4242
-                cardNumEl.addEventListener('input', function(){
-                  const digits = this.value.replace(/\D/g,'').slice(0,19);
-                  const parts = digits.match(/.{1,4}/g);
-                  this.value = parts ? parts.join(' ') : digits;
-                });
-              }
-              if (expEl){
-                // formatta MM/AA inserendo la slash automaticamente
-                expEl.addEventListener('input', function(){
-                  const digits = this.value.replace(/\D/g,'').slice(0,4);
-                  if (digits.length <= 2) this.value = digits;
-                  else this.value = digits.slice(0,2) + '/' + digits.slice(2);
-                });
-                expEl.addEventListener('blur', function(){
-                  const digits = this.value.replace(/\D/g,'');
-                  if (digits.length === 2) this.value = digits + '/';
-                });
-              }
-            }
+        // Form HTML generato direttamente in JS — nessuna fetch necessaria
+        const inp = 'width:100%;padding:.6rem .9rem;background:rgba(4,17,30,.6);border:1px solid rgba(114,215,240,.2);border-radius:8px;color:#e8f6fc;font-size:.95rem;box-sizing:border-box;';
+        const lbl = 'font-size:.78rem;color:#72d7f0;display:block;margin-bottom:.3rem;';
+        let methodHtml = '';
+        if (method === 'card') {
+          methodHtml = `
+            <h3 style="margin-bottom:1rem;">💳 Carta di credito</h3>
+            <p style="font-size:.8rem;color:#5d9ab8;margin-bottom:1.25rem;">Simulazione — nessun addebito reale</p>
+            <div style="display:flex;flex-direction:column;gap:.85rem;">
+              <div><label style="${lbl}">Numero carta</label>
+                <input id="card_number" type="text" placeholder="4242 4242 4242 4242" maxlength="19" style="${inp}"></div>
+              <div style="display:flex;gap:.75rem;">
+                <div style="flex:1"><label style="${lbl}">Scadenza (MM/AA)</label>
+                  <input id="card_exp" type="text" placeholder="12/27" maxlength="5" style="${inp}"></div>
+                <div style="flex:1"><label style="${lbl}">CVC</label>
+                  <input id="card_cvc" type="text" placeholder="123" maxlength="4" style="${inp}"></div>
+              </div>
+              <div><label style="${lbl}">Titolare</label>
+                <input id="card_name" type="text" placeholder="Mario Rossi" style="${inp}"></div>
+            </div>`;
+        } else if (method === 'paypal') {
+          methodHtml = `
+            <h3 style="margin-bottom:1rem;">🅿️ PayPal</h3>
+            <p style="font-size:.8rem;color:#5d9ab8;margin-bottom:1.25rem;">Simulazione — nessun addebito reale</p>
+            <div style="display:flex;flex-direction:column;gap:.85rem;">
+              <div><label style="${lbl}">Email PayPal</label>
+                <input id="pp_email" type="email" placeholder="nome@esempio.it" style="${inp}"></div>
+              <div><label style="${lbl}">Password</label>
+                <input id="pp_pass" type="password" placeholder="••••••••" style="${inp}"></div>
+            </div>`;
+        } else if (method === 'bonifico') {
+          methodHtml = `
+            <h3 style="margin-bottom:1rem;">🏦 Bonifico Bancario</h3>
+            <div style="background:rgba(27,159,212,.07);border:1px solid rgba(27,159,212,.2);border-radius:10px;padding:1.1rem 1.25rem;display:flex;flex-direction:column;gap:.6rem;">
+              <div style="display:flex;justify-content:space-between;"><span style="font-size:.78rem;color:#5d9ab8;">Beneficiario</span><span style="color:#e8f6fc;font-weight:500;">NetSea ETS</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="font-size:.78rem;color:#5d9ab8;">IBAN</span><span style="color:#72d7f0;font-family:monospace;">IT60 X054 2811 1010 0000 0123 456</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="font-size:.78rem;color:#5d9ab8;">Causale</span><span style="color:#e8f6fc;">Donazione Progetto #${pid}</span></div>
+            </div>
+            <p style="font-size:.74rem;color:rgba(114,215,240,.4);margin-top:.75rem;">⏱ Il bonifico viene registrato entro 2-3 giorni lavorativi.</p>`;
+        }
 
-            const content = ov.querySelector('.donation-content');
-            content.innerHTML = data.html + `<p style="margin-top:.75rem;"><button class="confirm-pay btn-dona">Conferma e Paga</button> <button class="cancel-pay" style="margin-left:.5rem;">Annulla</button></p>`;
+        function attachFormatting(content){
+          const cardNumEl = content.querySelector('#card_number');
+          const expEl = content.querySelector('#card_exp');
+          if (cardNumEl){
+            cardNumEl.addEventListener('input', function(){
+              const digits = this.value.replace(/\D/g,'').slice(0,16);
+              const parts = digits.match(/.{1,4}/g);
+              this.value = parts ? parts.join(' ') : digits;
+            });
+          }
+          if (expEl){
+            expEl.addEventListener('input', function(){
+              const digits = this.value.replace(/\D/g,'').slice(0,4);
+              if (digits.length <= 2) this.value = digits;
+              else this.value = digits.slice(0,2) + '/' + digits.slice(2);
+            });
+          }
+        }
 
-            // attach formatting handlers to newly inserted inputs
-            attachFormatting(content);
+        const content = ov.querySelector('.donation-content');
+        content.innerHTML = methodHtml + `<p style="margin-top:1.25rem;display:flex;gap:.75rem;"><button class="confirm-pay btn-dona">Conferma e Paga</button><button class="cancel-pay" style="background:transparent;border:1px solid rgba(114,215,240,.2);color:#5d9ab8;padding:.6rem 1.2rem;border-radius:8px;cursor:pointer;">Annulla</button></p>`;
+        attachFormatting(content);
 
-            // Conferma: aggiungiamo controllo dei campi necessari e submit del form
-            content.querySelector('.confirm-pay').addEventListener('click', function(){
+        // Conferma: submit del form
+        content.querySelector('.confirm-pay').addEventListener('click', function(){
               // assicuriamoci che l'importo sia presente
               const impEl = form.querySelector('input[name="importo"]');
               if (!impEl || Number(impEl.value) < 1) { alert('Importo non valido'); return; }
@@ -273,11 +293,9 @@ $data_inizio = $p['data_i'] ? date('d M Y', strtotime($p['data_i'])) : '—';
               form.submit();
             });
 
-            // Annulla ritorna alla selezione dei metodi
-            const cancel = content.querySelector('.cancel-pay');
-            if (cancel) cancel.addEventListener('click', function(){ showMethodSelection(Number(ov.querySelector('strong')?.textContent.replace(/[€\s]/g,'')||0)); });
-          })
-          .catch(err => { console.error(err); alert('Errore caricamento dettagli pagamento'); });
+        // Annulla ritorna alla selezione dei metodi
+        const cancel = content.querySelector('.cancel-pay');
+        if (cancel) cancel.addEventListener('click', function(){ showMethodSelection(Number(ov.querySelector('strong')?.textContent.replace(/[€\s]/g,'')||0)); });
       });
     });
   }

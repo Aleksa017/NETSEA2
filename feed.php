@@ -29,6 +29,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['like_post'])) {
     exit();
 }
 
+// Incrementa visualizzazioni (POST con view_post=1 e id_post)
+if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['view_post'])) {
+    $id_post = (int)$_POST['id_post'];
+    $view_key = 'viewed_post_'.$id_post;
+    if (empty($_SESSION[$view_key])) {
+        $connessione->prepare("UPDATE media SET visualizzazioni = COALESCE(visualizzazioni,0)+1 WHERE id_post=?")->execute([$id_post]);
+        $_SESSION[$view_key] = true;
+    }
+    $vw = $connessione->prepare("SELECT visualizzazioni FROM media WHERE id_post=?");
+    $vw->execute([$id_post]);
+    echo json_encode(['views'=>(int)$vw->fetchColumn()]);
+    exit();
+}
+
 // ── CARICA POST (scroll infinito JSON) ──────────────────────────────────
 // Qui costruiamo la query per recuperare i post mostrati nel feed.
 // Supportiamo due modalità di filtro:
@@ -206,7 +220,7 @@ if (isset($_SESSION['id']) && !empty($posts)) {
     </button>
     <div class="action-btn">
       <div class="icon">👁</div>
-      <span class="lbl"><?= (int)($p['visualizzazioni'] ?? 0) ?></span>
+      <span class="lbl view-count-<?= $p['id_post'] ?>"><?= (int)($p['visualizzazioni'] ?? 0) ?></span>
     </div>
     <button class="action-btn" onclick="condividi(<?= $p['id_post'] ?>)">
       <div class="icon">🔗</div>
@@ -256,6 +270,18 @@ let modalPostId = null;
 // - aggiorna il contatore dei like e aggiorna gli interessi locali
 function apriModal(slide) {
   modalPostId = slide.dataset.id;
+  // Incrementa views (una sola volta per sessione, gestita lato PHP)
+  const fdv = new FormData();
+  fdv.append('view_post', '1');
+  fdv.append('id_post', modalPostId);
+  fetch('feed.php', {method:'POST', body:fdv})
+    .then(r => r.json())
+    .then(d => {
+      // Aggiorna tutti i contatori views visibili per questo post
+      document.querySelectorAll(`.view-count-${modalPostId}`).forEach(el => {
+        el.textContent = d.views;
+      });
+    }).catch(() => {});
   const url    = slide.dataset.url;
   const isVidModal = /\.(mp4|webm|ogg)$/i.test(url||'');
   const tipoEl = document.getElementById('modalTipo');

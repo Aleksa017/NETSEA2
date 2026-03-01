@@ -46,7 +46,7 @@ if (isset($_SESSION['id'])) {
     <li><a href="news.php">News</a></li>
     <li><a href="#donazioni">Donazioni</a></li>
     <li><a href="feed.php">Scopri</a></li>
-    <li><a href="Specie.php">Specie</a></li>
+    <li><a href="specie_list.php">Specie</a></li>
     <li><a href="Luoghi.php">Luoghi</a></li>
     <li><a href="rilevazioni.php">Rilevazioni</a></li>
   </ul>
@@ -79,44 +79,46 @@ if (isset($_SESSION['id'])) {
             <?php if (!empty($utente_loggato['foto'])): ?>
               <img src="<?= htmlspecialchars($utente_loggato['foto']) ?>" alt="Avatar" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">
             <?php else: ?>
-              <?php
-                if($utente_loggato['ruolo']==='admin') echo '⚙️';
-                elseif($utente_loggato['ruolo']==='ricercatore') echo '🔬';
-                else echo '👤';
-              ?>
+              <?php if($utente_loggato['ruolo']==='admin'): ?>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#72d7f0"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+              <?php elseif($utente_loggato['ruolo']==='ricercatore'): ?>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#72d7f0"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35M11 8v6M8 11h6"/></svg>
+              <?php else: ?>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#72d7f0"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <?php endif; ?>
             <?php endif; ?>
           </div>
           <strong><?= htmlspecialchars($utente_loggato['nome'].' '.$utente_loggato['cognome']) ?></strong>
           <p><?= htmlspecialchars(ucfirst($utente_loggato['ruolo'])) ?></p>
         </div>
         <div class="user-drop-actions">
-    <a href="profilo.php" class="drop-link"><span class="icon">👤</span> Il mio profilo</a>
+    <a href="profilo.php" class="drop-link"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Il mio profilo</a>
     
     <?php if(isset($_SESSION['ruolo']) && in_array($_SESSION['ruolo'], ['ricercatore', 'admin'])): ?>
-        <a href="crea_news.php" class="drop-link"><span class="icon">📰</span> Pubblica news</a>
-        <a href="crea_contenuto.php" class="drop-link"><span class="icon">✏️</span> Crea contenuto</a>
+        <a href="crea_news.php" class="drop-link"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Pubblica news</a>
+        <a href="crea_contenuto.php" class="drop-link"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Crea contenuto</a>
     <?php endif; ?>
 
     <?php if(isset($_SESSION['ruolo']) && $_SESSION['ruolo'] === 'admin'): ?>
-        <a href="admin.php" class="drop-link"><span class="icon">⚙️</span> Pannello Admin</a>
+        <a href="admin.php" class="drop-link"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06-.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg> Pannello Admin</a>
     <?php endif; ?>
 
     <div class="drop-divider"></div>
-    <a href="logout.php" class="drop-btn drop-btn-ghost">🚪 Esci</a>
+    <a href="logout.php" class="drop-btn drop-btn-ghost"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:.35rem;vertical-align:middle;"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Esci</a>
 </div>
       </div>
       <?php else: ?>
       <div class="user-dropdown" id="userDropdown">
         <div class="user-drop-top">
-          <div class="avatar">🌊</div>
+          <div class="avatar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(114,215,240,.6)" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
           <strong>Benvenuto su NetSea</strong>
           <p>Accedi per feed personalizzato e donazioni</p>
         </div>
         <div class="user-drop-actions">
           <a href="Login.php" class="drop-btn drop-btn-primary">Accedi</a>
-          <a href="Registrazione.php" class="drop-btn drop-btn-secondary">✨ Crea account</a>
+          <a href="Registrazione.php" class="drop-btn drop-btn-secondary">Crea account</a>
           <div class="drop-divider"></div>
-          <a href="Registrazione.php?tipo=ricercatore" class="drop-link"><span class="icon">🔬</span> Richiedi account ricercatore</a>
+          <a href="Registrazione.php?tipo=ricercatore" class="drop-link"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg> Richiedi account ricercatore</a>
       </div>
       <?php endif; ?>
     </div>
@@ -167,11 +169,9 @@ try {
   <div class="carousel-track" id="carouselTrack">
   <?php if (empty($news_carousel)): ?>
     <div class="slide">
-      <div class="slide-bg" style="background:linear-gradient(135deg,#062040,#0b5575);">
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding-right:20%;font-size:12rem;opacity:.15;user-select:none;">🌊</div>
-      </div>
+      <div class="slide-bg" style="background:linear-gradient(135deg,#062040,#0b5575);"></div>
       <div class="slide-content">
-        <span class="slide-tag">📰 News</span>
+        <span class="slide-tag">News</span>
         <h1 class="slide-title">Benvenuto su NetSea</h1>
         <p class="slide-desc">Le news pubblicate dai ricercatori verificati appariranno qui.</p>
         <a href="news.php" class="slide-btn">Vai alle news →</a>
@@ -189,12 +189,11 @@ try {
   <div class="slide">
     <div class="slide-bg" style="background:<?= $grad ?>;">
       <?php if ($hasCover): ?>
-        <img src="<?= htmlspecialchars($nc['copertina']) ?>" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.4;">
+        <img src="<?= htmlspecialchars($nc['copertina']) ?>" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
       <?php endif; ?>
-      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding-right:20%;font-size:12rem;opacity:.12;user-select:none;"><?= $emoji ?></div>
     </div>
     <div class="slide-content">
-      <span class="slide-tag">📰 News</span>
+      <span class="slide-tag">News</span>
       <h1 class="slide-title"><?= htmlspecialchars($nc['titolo']) ?></h1>
       <p class="slide-desc"><?= htmlspecialchars($desc_nc) ?>…</p>
       <p class="slide-author">Di <span><?= htmlspecialchars($autore_nc) ?></span><?= $nc['qualifica'] ? ' · ' . htmlspecialchars($nc['qualifica']) : '' ?><?= $data_nc ? ' · ' . $data_nc : '' ?></p>
@@ -296,9 +295,20 @@ try {
             $label    = ucfirst($stato);
         ?>
         <a href="progetto_detail.php?id=<?= $p['id_pd'] ?>" class="donation-card" data-stato="<?= htmlspecialchars($stato) ?>" style="display:block;text-decoration:none;">
-          <div class="donation-card-top" style="<?= $top_grad ?>">
-            <span style="font-size:4rem;"><?= $emojis_don[$don_i % count($emojis_don)] ?></span>
-            <span class="donation-status" style="<?= $badge_s ?>"><?= $s_icon ?> <?= $label ?></span>
+          <div class="donation-card-top" style="<?= $top_grad ?>; position:relative; overflow:hidden;">
+            <?php
+              $hasCoverD = !empty($p['immagine']) && preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $p['immagine']);
+            ?>
+            <?php if ($hasCoverD): ?>
+              <img src="<?= htmlspecialchars($p['immagine']) ?>" alt=""
+                   style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.7;">
+              <div style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(4,17,30,.6) 0%,transparent 60%);"></div>
+            <?php else: ?>
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:5rem;opacity:.15;">
+                <?= $emojis_don[$don_i % count($emojis_don)] ?>
+              </div>
+            <?php endif; ?>
+            <span class="donation-status" style="position:relative;z-index:1;<?= $badge_s ?>"><?= $label ?></span>
           </div>
           <div class="donation-card-body">
             <h3><?= htmlspecialchars($p['titolo']) ?></h3>
@@ -353,7 +363,7 @@ try {
       <div class="feed-scroll-track">
       <?php if (empty($feed_preview)): ?>
         <div class="feed-card" style="cursor:default;">
-          <div class="feed-card-bg">🌊</div>
+          <div class="feed-card-bg" style="background:linear-gradient(135deg,var(--ocean),var(--deep));"></div>
           <div class="feed-card-overlay">
             <p class="feed-card-title">Nessun contenuto ancora</p>
           </div>
@@ -440,18 +450,18 @@ try {
   <div class="footer-inner">
     <div class="footer-grid">
       <div class="footer-brand">
-        <span class="logo">🌊 NetSea</span>
+        <a href="index.php" style="display:inline-block;"><img src="logo.svg" alt="NetSea" style="height:48px;width:auto;object-fit:contain;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5));display:block;"></a>
         <p>Piattaforma dedicata alla ricerca e alla divulgazione sugli ecosistemi marini. Dati aggiornati, specie monitorate, news dalla scienza oceanografica.</p>
         <div style="margin-top:1.25rem;display:flex;gap:.75rem;">
-          <a href="#" style="color:#7a6a58;font-size:1.2rem;text-decoration:none;">𝕏</a>
-          <a href="#" style="color:#7a6a58;font-size:1.2rem;text-decoration:none;">📷</a>
-          <a href="#" style="color:#7a6a58;font-size:1.2rem;text-decoration:none;">▶</a>
+          <a href="#" style="color:#7a6a58;text-decoration:none;font-size:.85rem;font-weight:600;letter-spacing:.05em;">X</a>
+          <a href="#" style="color:#7a6a58;text-decoration:none;font-size:.85rem;font-weight:600;letter-spacing:.05em;">IG</a>
+          <a href="#" style="color:#7a6a58;text-decoration:none;font-size:.85rem;font-weight:600;letter-spacing:.05em;">YT</a>
         </div>
       </div>
       <div class="footer-col">
         <h4>Esplora</h4>
         <ul>
-          <li><a href="specie.php">Specie Marine</a></li>
+          <li><a href="specie_list.php">Specie Marine</a></li>
           <li><a href="luoghi.php">Luoghi & Habitat</a></li>
           <li><a href="news.php">News Scientifiche</a></li>
           <li><a href="progetti.php">Donazioni</a></li>
@@ -723,7 +733,7 @@ function renderRisultati(dati, query) {
 
   // ── NEWS ──────────────────────────────────────────────────────────────
   if (dati.news && dati.news.length) {
-    html += `<p style="font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:#5d9ab8;margin-bottom:.75rem;">📰 News correlate</p>`;
+    html += `<p style="font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:#5d9ab8;margin-bottom:.75rem;">News correlate</p>`;
     dati.news.forEach(n => {
       html += `
       <a href="news_detail.php?id=${n.id_news}" style="display:flex;align-items:center;gap:1rem;background:rgba(11,61,94,.2);border:1px solid rgba(114,215,240,.07);border-radius:10px;padding:.9rem 1.1rem;margin-bottom:.6rem;text-decoration:none;" onmouseover="this.style.borderColor='rgba(114,215,240,.2)'" onmouseout="this.style.borderColor='rgba(114,215,240,.07)'">
@@ -787,9 +797,9 @@ function renderRisultati(dati, query) {
   // ── LUOGHI ────────────────────────────────────────────────────────────
   if (dati.luoghi && dati.luoghi.length) {
     html += `<p style="font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:#5d9ab8;margin-bottom:.75rem;">📍 Luoghi</p>`;
-    const tipoIcon = {mare:'🌊',golfo:'🏖️',stretto:'🌉',fossa:'🕳️',arcipelago:'🏝️',canale:'⚓',costa:'🏔️',laguna:'🦢'};
+    const tipoIcon = {mare:'',golfo:'',stretto:'',fossa:'',arcipelago:'',canale:'',costa:'',laguna:''};
     dati.luoghi.forEach(l => {
-      const ico = tipoIcon[l.tipo||''] || '🌊';
+      const ico = tipoIcon[l.tipo||''] || '';
       html += `
       <a href="luoghi.php?id=${l.id_luogo}" style="display:flex;align-items:center;gap:1rem;background:rgba(11,61,94,.2);border:1px solid rgba(114,215,240,.07);border-radius:10px;padding:.9rem 1.1rem;margin-bottom:.6rem;text-decoration:none;" onmouseover="this.style.borderColor='rgba(114,215,240,.2)'" onmouseout="this.style.borderColor='rgba(114,215,240,.07)'">
         <span style="font-size:1.8rem;">${ico}</span>
@@ -839,7 +849,7 @@ function renderRisultati(dati, query) {
   // ── NESSUN RISULTATO ──────────────────────────────────────────────────
   if (!html) {
     html = `<div style="text-align:center;padding:3rem;color:#5d9ab8;">
-      <div style="font-size:3rem;margin-bottom:1rem;">🌊</div>
+      <div style="margin-bottom:1rem;"><img src="logo.svg" style="height:48px;opacity:.3;filter:grayscale(1);"></div>
       <p>Nessun risultato per "<strong style="color:#72d7f0;">${esc(query)}</strong>"</p>
     </div>`;
   }
@@ -872,7 +882,7 @@ function apriModalIndex(card) {
   } else if (isImg) {
     mBox.innerHTML = `<img style="width:100%;max-height:340px;object-fit:cover;border-radius:16px 16px 0 0;display:block;" src="${escIdx(url)}" alt="">`;
   } else {
-    mBox.innerHTML = `<div style="height:180px;background:linear-gradient(135deg,#0b3d5e,#071e33);border-radius:16px 16px 0 0;display:flex;align-items:center;justify-content:center;font-size:5rem;">🌊</div>`;
+    mBox.innerHTML = `<div style="height:180px;background:linear-gradient(135deg,#0b3d5e,#071e33);border-radius:16px 16px 0 0;"></div>`;
   }
 
   document.getElementById('indexModalTipo').textContent   = isVid ? '📹 Video' : '📸 Foto';

@@ -18,7 +18,22 @@ $errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $titolo    = trim($_POST['titolo']    ?? '');
     $contenuto = trim($_POST['contenuto'] ?? '');
-    $copertina = trim($_POST['copertina'] ?? ''); // URL immagine/video copertina
+    $copertina = trim($_POST['copertina'] ?? '');
+
+    // Upload file copertina (ha precedenza sull'URL)
+    if (!empty($_FILES['copertina_file']['tmp_name'])) {
+        $ext = strtolower(pathinfo($_FILES['copertina_file']['name'], PATHINFO_EXTENSION));
+        if (in_array($ext, ['jpg','jpeg','png','gif','webp'])) {
+            $dir = __DIR__ . '/uploads/news/';
+            if (!is_dir($dir)) mkdir($dir, 0755, true);
+            $fname = 'news_' . time() . '_' . rand(1000,9999) . '.' . $ext;
+            if (move_uploaded_file($_FILES['copertina_file']['tmp_name'], $dir . $fname)) {
+                $copertina = 'uploads/news/' . $fname;
+            }
+        } else {
+            $errors[] = "Formato file non supportato. Usa jpg, png, webp.";
+        }
+    }
 
     if ($titolo === '')    $errors[] = "Il titolo è obbligatorio.";
     if ($contenuto === '') $errors[] = "Il contenuto è obbligatorio.";
@@ -45,13 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
 <nav>
-  <a href="index.php" class="nav-logo">
-    <svg viewBox="0 0 40 40" fill="none">
-      <circle cx="20" cy="20" r="18" fill="rgba(27,159,212,.15)" stroke="rgba(114,215,240,.3)" stroke-width="1"/>
-      <path d="M8 22 Q12 16 16 22 Q20 28 24 22 Q28 16 32 22" stroke="#72d7f0" stroke-width="2" fill="none" stroke-linecap="round"/>
-    </svg>
-    NetSea
-  </a>
+  <a href="index.php" class="nav-logo"><img src="logo.svg" alt="NetSea" style="height:56px;width:auto;object-fit:contain;display:block;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5));"></a>
   <a href="index.php" class="nav-back">← Home</a>
 </nav>
 
@@ -65,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="alert alert-err"><?php foreach($errors as $e) echo "❌ ".htmlspecialchars($e)."<br>"; ?></div>
   <?php endif; ?>
 
-  <form method="POST" id="newsForm">
+  <form method="POST" enctype="multipart/form-data" id="newsForm">
 
     <div class="form-group">
       <label>Titolo *</label>
@@ -74,12 +83,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <div class="form-group">
-      <label>Copertina — URL immagine o video</label>
-      <input type="url" name="copertina" id="copertinaInput"
-             value="<?= htmlspecialchars($_POST['copertina'] ?? '') ?>"
-             placeholder="https://esempio.com/foto.jpg  oppure  .../video.mp4">
-      <p class="hint">Incolla un link a una foto (jpg, png, webp) o video (mp4, youtube). Lascia vuoto se non hai una copertina.</p>
-      <div class="preview-box" id="previewBox">
+      <label>Copertina</label>
+      <div style="display:flex;flex-direction:column;gap:.75rem;">
+        <!-- Upload da file -->
+        <div>
+          <label style="font-size:.78rem;color:var(--muted);margin-bottom:.3rem;display:block;">📁 Carica un file</label>
+          <input type="file" name="copertina_file" id="copertinaFile"
+                 accept="image/jpeg,image/png,image/webp,image/gif"
+                 style="color:var(--pearl);font-size:.85rem;">
+        </div>
+        <!-- Oppure URL -->
+        <div>
+          <label style="font-size:.78rem;color:var(--muted);margin-bottom:.3rem;display:block;">🔗 Oppure incolla un URL</label>
+          <input type="url" name="copertina" id="copertinaInput"
+                 value="<?= htmlspecialchars($_POST['copertina'] ?? '') ?>"
+                 placeholder="https://esempio.com/foto.jpg">
+        </div>
+      </div>
+      <p class="hint" style="margin-top:.5rem;">Il file ha precedenza sull'URL se entrambi sono inseriti.</p>
+      <div class="preview-box" id="previewBox" style="margin-top:.75rem;">
         <img id="previewImg" src="" alt="anteprima">
         <video id="previewVid" src="" controls style="display:none;"></video>
       </div>
@@ -118,6 +140,20 @@ const inp = document.getElementById('copertinaInput');
 const box = document.getElementById('previewBox');
 const img = document.getElementById('previewImg');
 const vid = document.getElementById('previewVid');
+
+// Preview da file locale
+document.getElementById('copertinaFile').addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    img.style.display='block'; vid.style.display='none';
+    img.src = e.target.result; box.style.display='block';
+    // Svuota URL se si sceglie file
+    inp.value = '';
+  };
+  reader.readAsDataURL(file);
+});
 
 inp.addEventListener('input', () => {
   const url = inp.value.trim();

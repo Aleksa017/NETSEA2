@@ -144,13 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="cursor-ring" id="cursorRing" style="opacity:0;"></div>
 
 <nav>
-  <a href="index.php" class="nav-logo">
-    <svg viewBox="0 0 40 40" fill="none">
-      <circle cx="20" cy="20" r="18" fill="rgba(27,159,212,.15)" stroke="rgba(114,215,240,.3)" stroke-width="1"/>
-      <path d="M8 22 Q12 16 16 22 Q20 28 24 22 Q28 16 32 22" stroke="#72d7f0" stroke-width="2" fill="none" stroke-linecap="round"/>
-    </svg>
-    NetSea
-  </a>
+  <a href="index.php" class="nav-logo"><img src="logo.svg" alt="NetSea" style="height:56px;width:auto;object-fit:contain;display:block;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5));"></a>
   <a href="feed.php" class="nav-back">← Feed</a>
 </nav>
 
@@ -295,7 +289,7 @@ fileInput.addEventListener('change', function() {
   const f = this.files[0]; if (!f) return;
 
   const tipo  = tipoSelezionato();
-  const maxMB = tipo ? (formati[tipo]?.maxMB ?? 500) : 500;
+  const maxMB = tipo ? (formati[tipo]?.maxMB ?? 20) : 20;
   const sizeMB = (f.size / 1024 / 1024).toFixed(1);
 
   fcName.textContent = f.name;
