@@ -46,6 +46,7 @@ $badge_map = [
   <style>
     .specie-hero {
       padding: 5.5rem 2.5rem 2.5rem;
+      text-align: center;
       background: linear-gradient(180deg, rgba(4,17,30,.95) 0%, rgba(7,30,51,.7) 100%);
       border-bottom: 1px solid rgba(114,215,240,.08);
     }
@@ -59,7 +60,7 @@ $badge_map = [
 
     /* Barra ricerca */
     .s-search {
-      display: flex; gap: .6rem; max-width: 500px; margin: 0 auto 1.5rem;
+      display: flex; gap: .5rem; max-width: 420px; margin: 0 auto 1.25rem;
     }
     .s-search input {
       flex: 1; padding: .7rem 1rem;
@@ -81,13 +82,13 @@ $badge_map = [
     }
     .filtri-row label { font-size: .72rem; color: var(--muted); margin-right: -.2rem; }
     .filtri-row select {
-      padding: .45rem .85rem; background: rgba(11,61,94,.35);
+      padding: .4rem .7rem; background: rgba(11,61,94,.35);
       border: 1px solid rgba(114,215,240,.15); border-radius: 8px;
-      color: var(--pearl); font-family: 'Outfit', sans-serif; font-size: .82rem;
-      cursor: pointer; outline: none; appearance: none;
+      color: var(--pearl); font-family: 'Outfit', sans-serif; font-size: .78rem;
+      cursor: pointer; outline: none; appearance: none; max-width: 160px;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2372d7f0' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat; background-position: right .65rem center;
-      padding-right: 2rem;
+      background-repeat: no-repeat; background-position: right .5rem center;
+      padding-right: 1.6rem;
     }
     .filtri-row select:focus { border-color: var(--wave); }
     .btn-reset-f {
@@ -182,7 +183,7 @@ $badge_map = [
 </nav>
 
 <div class="specie-hero">
-  <h1>🐋 Specie Marine</h1>
+  <h1>Specie Marine</h1>
   <p>Esplora le specie monitorate dai ricercatori NetSea nel Mediterraneo.</p>
 
   <!-- Ricerca -->
