@@ -142,7 +142,7 @@ if (isset($_SESSION['id']) && !empty($posts)) {
 
 <nav class="nav-feed">
   <a href="index.php" class="nav-logo">
-    <img src="logo.svg" alt="NetSea" style="height:52px;width:auto;object-fit:contain;display:block;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5));">
+    <img src="uploads/logos/logo.svg" alt="NetSea" style="height:52px;width:auto;object-fit:contain;display:block;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5));">
   </a>
   <div style="margin-left:1rem;flex:1;display:flex;align-items:center;">
     <input id="feedSearch" placeholder="Cerca nel feed..." style="width:100%;padding:.5rem .75rem;border-radius:8px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02);color:var(--text);"> 
