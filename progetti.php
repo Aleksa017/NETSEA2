@@ -45,7 +45,15 @@ $progetti = $connessione->query("SELECT * FROM progetto ORDER BY data_i DESC")->
 </nav>
 
 <div class="proj-hero">
-  <h1>💚 Progetti di Donazione</h1>
+  <div style="display:flex;align-items:center;justify-content:center;gap:1.5rem;flex-wrap:wrap;">
+    <h1>Progetti di Donazione</h1>
+    <?php if (in_array($_SESSION['ruolo'] ?? '', ['ricercatore','admin'])): ?>
+    <a href="crea_progetto.php" style="display:inline-flex;align-items:center;gap:.45rem;padding:.55rem 1.1rem;background:rgba(27,159,212,.12);border:1px solid rgba(27,159,212,.3);border-radius:9px;color:var(--wave);text-decoration:none;font-size:.8rem;font-weight:600;transition:background .2s;" onmouseover="this.style.background='rgba(27,159,212,.22)'" onmouseout="this.style.background='rgba(27,159,212,.12)'">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nuovo progetto
+    </a>
+    <?php endif; ?>
+  </div>
   <p>Sostieni la ricerca e la protezione degli ecosistemi marini nel Mediterraneo.</p>
 </div>
 

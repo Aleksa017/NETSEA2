@@ -29,17 +29,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['like_post'])) {
     exit();
 }
 
-// Incrementa visualizzazioni (POST con view_post=1 e id_post)
+// Registra visualizzazione (POST con view_post=1 e id_post)
 if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['view_post'])) {
+    header('Content-Type: application/json');
     $id_post = (int)$_POST['id_post'];
-    $view_key = 'viewed_post_'.$id_post;
-    if (empty($_SESSION[$view_key])) {
-        $connessione->prepare("UPDATE media SET visualizzazioni = COALESCE(visualizzazioni,0)+1 WHERE id_post=?")->execute([$id_post]);
-        $_SESSION[$view_key] = true;
+    if ($id_post > 0) {
+        try {
+            $id_utente_vis = isset($_SESSION['id']) ? (int)$_SESSION['id'] : null;
+            // Utente loggato: una view al giorno per evitare spam
+            // Utente anonimo: sempre registra (non abbiamo modo di identificarlo)
+            $inserisci = true;
+            if ($id_utente_vis) {
+                $chk = $connessione->prepare("SELECT COUNT(*) FROM visualizzazione WHERE id_post=? AND id_utente=? AND DATE(data_vis)=CURDATE()");
+                $chk->execute([$id_post, $id_utente_vis]);
+                if ($chk->fetchColumn() > 0) $inserisci = false;
+            }
+            if ($inserisci) {
+                $connessione->prepare("INSERT INTO visualizzazione (id_post, id_utente) VALUES (?, ?)")->execute([$id_post, $id_utente_vis]);
+            }
+            $vw = $connessione->prepare("SELECT COUNT(*) FROM visualizzazione WHERE id_post=?");
+            $vw->execute([$id_post]);
+            echo json_encode(['views' => (int)$vw->fetchColumn()]);
+        } catch (Exception $e) {
+            // Se la tabella non esiste ancora restituisce 0 senza errore
+            echo json_encode(['views' => 0, 'error' => $e->getMessage()]);
+        }
+    } else {
+        echo json_encode(['views' => 0]);
     }
-    $vw = $connessione->prepare("SELECT visualizzazioni FROM media WHERE id_post=?");
-    $vw->execute([$id_post]);
-    echo json_encode(['views'=>(int)$vw->fetchColumn()]);
     exit();
 }
 
@@ -76,7 +93,7 @@ if ($q !== '') {
 }
 
 // Costruiamo la query in modo sicuro usando prepared statements
-$sql = "SELECT m.*, u.nome, u.cognome, u.username, (SELECT COUNT(*) FROM like_media l WHERE l.id_post = m.id_post) AS like_count
+$sql = "SELECT m.*, u.nome, u.cognome, u.username, (SELECT COUNT(*) FROM like_media l WHERE l.id_post = m.id_post) AS like_count, (SELECT COUNT(*) FROM visualizzazione v WHERE v.id_post = m.id_post) AS visualizzazioni
   FROM media m
   LEFT JOIN utente u ON m.id_utente = u.id_utente
   $where
@@ -125,11 +142,7 @@ if (isset($_SESSION['id']) && !empty($posts)) {
 
 <nav class="nav-feed">
   <a href="index.php" class="nav-logo">
-    <svg viewBox="0 0 40 40" fill="none">
-      <circle cx="20" cy="20" r="18" fill="rgba(27,159,212,.15)" stroke="rgba(114,215,240,.3)" stroke-width="1"/>
-      <path d="M8 22 Q12 16 16 22 Q20 28 24 22 Q28 16 32 22" stroke="#72d7f0" stroke-width="2" fill="none" stroke-linecap="round"/>
-    </svg>
-    NetSea
+    <img src="logo.svg" alt="NetSea" style="height:52px;width:auto;object-fit:contain;display:block;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5));">
   </a>
   <div style="margin-left:1rem;flex:1;display:flex;align-items:center;">
     <input id="feedSearch" placeholder="Cerca nel feed..." style="width:100%;padding:.5rem .75rem;border-radius:8px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02);color:var(--text);"> 
@@ -207,8 +220,15 @@ if (isset($_SESSION['id']) && !empty($posts)) {
 
   <!-- Pulsante audio fisso in alto a destra sulla slide -->
   <?php if ($isVideo): ?>
-  <button class="audio-btn" id="audioBtn_<?= $p['id_post'] ?>" onclick="event.stopPropagation();toggleAudio(this)" title="Audio">
-    🔇
+  <button class="audio-btn" id="audioBtn_<?= $p['id_post'] ?>" onclick="event.stopPropagation();toggleAudio(this)" title="Attiva/disattiva audio">
+    <svg class="icon-muted" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+      <line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>
+    </svg>
+    <svg class="icon-unmuted" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+      <path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/>
+    </svg>
   </button>
   <?php endif; ?>
 
@@ -403,7 +423,11 @@ function toggleAudio(btn) {
   // Aggiorna tutti i video presenti
   document.querySelectorAll('.feed-video').forEach(v => { v.muted = globalMuted; });
   // Aggiorna tutte le icone
-  document.querySelectorAll('.audio-btn').forEach(b => { b.textContent = globalMuted ? '🔇' : '🔊'; });
+  document.querySelectorAll('.audio-btn').forEach(b => {
+    const m = b.querySelector('.icon-muted'); const u = b.querySelector('.icon-unmuted');
+    if(m) m.style.display = globalMuted ? '' : 'none';
+    if(u) u.style.display = globalMuted ? 'none' : '';
+  });
 }
 
 const observer = new IntersectionObserver(entries => {
@@ -415,7 +439,10 @@ const observer = new IntersectionObserver(entries => {
       vid.play().catch(()=>{});
       // Sincronizza l'icona del bottone su questa slide
       const btn = e.target.querySelector('.audio-btn');
-      if (btn) btn.textContent = globalMuted ? '🔇' : '🔊';
+      if (btn) {
+        const m=btn.querySelector('.icon-muted'),u=btn.querySelector('.icon-unmuted');
+        if(m) m.style.display=globalMuted?'':'none'; if(u) u.style.display=globalMuted?'none':'';
+      }
     } else {
       vid.pause(); vid.currentTime = 0;
     }
@@ -542,7 +569,7 @@ function creaSlide(p) {
       <button class="action-btn like-btn" data-id="${p.id_post}" onclick="toggleLike(this)">
         <div class="icon">🤍</div><span class="lbl like-count">${p.like_count||0}</span>
       </button>
-      <div class="action-btn"><div class="icon">👁</div><span class="lbl">${p.visualizzazioni||0}</span></div>
+      <div class="action-btn"><div class="icon">👁</div><span class="lbl view-count-${p.id_post}">${p.visualizzazioni||0}</span></div>
       <button class="action-btn" onclick="condividi(${p.id_post})"><div class="icon">🔗</div><span class="lbl">Share</span></button>
     </div>`;
   // Detect orientamento video

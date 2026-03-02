@@ -159,8 +159,13 @@ if ($parametro && preg_match('/\(([^)]+)\)/', $parametro, $m)) $unita = $m[1];
 <div class="ril-wrap">
 
   <div class="ril-hero">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
     <h1>Rilevazioni Ambientali</h1>
-    <p>I ricercatori NetSea effettuano misurazioni periodiche in diversi punti del Mediterraneo per monitorare la salute degli ecosistemi. Ogni rilevazione registra un parametro fisico o chimico dell'acqua in una data e in un luogo specifico. Usa i filtri per esplorare i dati per zona o per tipo di misura.</p>
+    <?php if(in_array($_SESSION['ruolo']??'',['ricercatore','admin'])): ?>
+    <a href="crea_rilevazione.php" style="display:inline-flex;align-items:center;gap:.45rem;padding:.55rem 1.1rem;background:rgba(27,159,212,.12);border:1px solid rgba(27,159,212,.3);border-radius:9px;color:var(--wave);text-decoration:none;font-size:.8rem;font-weight:600;" >+ Nuova rilevazione</a>
+    <?php endif; ?>
+  </div>
+    <p>I ricercatori NetSea effettuano misurazioni periodiche in diversi punti del mondo per monitorare la salute degli ecosistemi. Ogni rilevazione registra un parametro fisico o chimico dell'acqua in una data e in un luogo specifico. Usa i filtri per esplorare i dati per zona o per tipo di misura.</p>
   </div>
 
   <!-- Filtri -->

@@ -97,6 +97,8 @@ if (isset($_SESSION['id'])) {
     <?php if(isset($_SESSION['ruolo']) && in_array($_SESSION['ruolo'], ['ricercatore', 'admin'])): ?>
         <a href="crea_news.php" class="drop-link"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Pubblica news</a>
         <a href="crea_contenuto.php" class="drop-link"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Crea contenuto</a>
+        <a href="crea_rilevazione.php" class="drop-link"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Inserisci rilevazione</a>
+        <a href="crea_progetto.php" class="drop-link"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Nuovo progetto</a>
     <?php endif; ?>
 
     <?php if(isset($_SESSION['ruolo']) && $_SESSION['ruolo'] === 'admin'): ?>
@@ -189,7 +191,8 @@ try {
   <div class="slide">
     <div class="slide-bg" style="background:<?= $grad ?>;">
       <?php if ($hasCover): ?>
-        <img src="<?= htmlspecialchars($nc['copertina']) ?>" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+        <img src="<?= htmlspecialchars($nc['copertina']) ?>" alt=""
+             style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.75;z-index:0;">
       <?php endif; ?>
     </div>
     <div class="slide-content">
@@ -252,7 +255,7 @@ try {
   <?php
   // Ultimi 10 progetti, raccolto dal campo diretto
   try {
-      $stmt_don = $connessione->query("SELECT * FROM progetto ORDER BY data_i DESC LIMIT 10");
+      $stmt_don = $connessione->query("SELECT * FROM progetto WHERE stato != 'completato' ORDER BY stato='urgente' DESC, data_i DESC LIMIT 3");
       $progetti = $stmt_don->fetchAll();
   } catch (PDOException $e) { $progetti = []; }
   ?>
@@ -340,7 +343,7 @@ try {
   try {
       $feed_preview = $connessione->query("
           SELECT m.*, u.nome, u.cognome,
-                 (SELECT COUNT(*) FROM like_media l WHERE l.id_post = m.id_post) AS like_count
+                 (SELECT COUNT(*) FROM like_media l WHERE l.id_post = m.id_post) AS like_count, (SELECT COUNT(*) FROM visualizzazione v WHERE v.id_post = m.id_post) AS visualizzazioni
           FROM media m
           LEFT JOIN utente u ON m.id_utente = u.id_utente
           ORDER BY m.data_pub DESC LIMIT 8

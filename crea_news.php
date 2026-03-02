@@ -15,10 +15,15 @@ if (!$ricercatore && ($_SESSION['ruolo'] ?? '') !== 'admin') {
 $id_ric = $ricercatore['id_ricercatore'] ?? $_SESSION['id'];
 
 $errors = [];
+
+// Carica progetti disponibili per il select
+$progetti_disponibili = $connessione->query("SELECT id_pd, titolo FROM progetto WHERE stato != 'completato' ORDER BY titolo")->fetchAll();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $titolo    = trim($_POST['titolo']    ?? '');
     $contenuto = trim($_POST['contenuto'] ?? '');
-    $copertina = trim($_POST['copertina'] ?? '');
+    $copertina  = trim($_POST['copertina']  ?? '');
+    $link_donazione = filter_var(trim($_POST['link_donazione'] ?? ''), FILTER_VALIDATE_URL) ? trim($_POST['link_donazione']) : null;
 
     // Upload file copertina (ha precedenza sull'URL)
     if (!empty($_FILES['copertina_file']['tmp_name'])) {
@@ -40,10 +45,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         $stmt = $connessione->prepare(
-            "INSERT INTO news (titolo, contenuto, copertina, data_pub, id_ricercatore, visualizzazioni)
-             VALUES (?, ?, ?, CURDATE(), ?, 0)"
+            "INSERT INTO news (titolo, contenuto, copertina, data_pub, id_ricercatore, link_donazione)
+             VALUES (?, ?, ?, CURDATE(), ?, ?)"
         );
-        $stmt->execute([$titolo, $contenuto, $copertina ?: null, $id_ric]);
+        $stmt->execute([$titolo, $contenuto, $copertina ?: null, $id_ric, $link_donazione]);
         header('Location: crea_news.php?ok=1'); exit();
     }
 }
@@ -68,10 +73,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <h1>📰 Pubblica una News</h1>
 
   <?php if (isset($_GET['ok'])): ?>
-    <div class="alert alert-ok">✅ News pubblicata con successo!</div>
+    <div class="alert alert-ok"> News pubblicata con successo!</div>
   <?php endif; ?>
   <?php if (!empty($errors)): ?>
-    <div class="alert alert-err"><?php foreach($errors as $e) echo "❌ ".htmlspecialchars($e)."<br>"; ?></div>
+    <div class="alert alert-err"><?php foreach($errors as $e) echo " ".htmlspecialchars($e)."<br>"; ?></div>
   <?php endif; ?>
 
   <form method="POST" enctype="multipart/form-data" id="newsForm">
@@ -122,7 +127,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <div>
-      <button type="submit" class="btn-submit">📤 Pubblica</button>
+    <div class="form-group">
+      <label>Link donazione <span style="color:var(--muted);font-weight:400;">(opzionale)</span></label>
+      <input type="url" name="link_donazione" value="<?= htmlspecialchars($_POST['link_donazione'] ?? '') ?>"
+             placeholder="https://..." style="width:100%;padding:.6rem .9rem;background:rgba(11,61,94,.4);border:1px solid rgba(114,215,240,.15);border-radius:9px;color:var(--pearl);font-family:'Outfit',sans-serif;font-size:.875rem;outline:none;">
+      <p style="font-size:.75rem;color:var(--muted);margin-top:.3rem;">Se inserisci un link, apparirà un bottone alla fine dell'articolo.</p>
+    </div>
+
+      <button type="submit" class="btn-submit">Pubblica</button>
       <a href="index.php" class="btn-sec">Annulla</a>
     </div>
   </form>

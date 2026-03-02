@@ -13,6 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $isAuthor = isset($_SESSION['id']) && (int)$_SESSION['id'] === (int)$row['id_ricercatore'];
     if (!($isAdmin || $isAuthor)) { header('HTTP/1.1 403 Forbidden'); exit(); }
     if (!empty($row['copertina'])) { $fp = __DIR__.'/'.$row['copertina']; if (is_file($fp)) @unlink($fp); }
+    // Elimina prima le visualizzazioni collegate (FK constraint)
+    $connessione->prepare('DELETE FROM visualizzazione_news WHERE id_news = ?')->execute([$id_news]);
     $connessione->prepare('DELETE FROM news WHERE id_news = ?')->execute([$id_news]);
     header('Location: news.php?deleted=1'); exit();
   } catch (Exception $e) { header('Location: news.php'); exit(); }
@@ -87,7 +89,7 @@ $tutte_news = $stmt->fetchAll();
 </nav>
 
 <div class="news-hero">
-  <h1>📰 News Marine</h1>
+  <h1> News Marine</h1>
   <p>Aggiornamenti dalla ricerca oceanografica nel Mediterraneo</p>
   <form class="news-search" method="GET" action="news.php">
     <input type="text" name="q" value="<?= htmlspecialchars($q) ?>" placeholder="Cerca per titolo o contenuto…" autocomplete="off">

@@ -4,7 +4,14 @@ require 'config.php';
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 if (!$id) { header("Location: progetti.php"); exit(); }
 
-$stmt = $connessione->prepare("SELECT * FROM progetto WHERE id_pd = ?");
+$stmt = $connessione->prepare("
+    SELECT p.*,
+           e.nome AS ente_nome, e.tipo AS ente_tipo, e.citta AS ente_citta
+    FROM progetto p
+    LEFT JOIN sponsorizzazione s ON s.id_pd = p.id_pd
+    LEFT JOIN ente_di_ricerca e ON e.id_ente = s.id_ente
+    WHERE p.id_pd = ?
+");
 $stmt->execute([$id]);
 $p = $stmt->fetch();
 if (!$p) { header("Location: progetti.php"); exit(); }
@@ -16,8 +23,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['dona'])) {
     }
     $importo = (float)str_replace(',', '.', $_POST['importo'] ?? 0);
     if ($importo >= 1 && $importo <= 10000) {
-        $connessione->prepare("UPDATE progetto SET raccolto = raccolto + ? WHERE id_pd = ?")
-                    ->execute([$importo, $id]);
+        // Salva la donazione nella tabella dedicata
+        $connessione->prepare(
+            "INSERT INTO donazione (importo, data, id_utente, id_pd) VALUES (?, CURDATE(), ?, ?)"
+        )->execute([$importo, $_SESSION['id'], $id]);
+        // Aggiorna il totale raccolto (calcolato dalla somma delle donazioni)
+        $connessione->prepare(
+            "UPDATE progetto SET raccolto = (SELECT COALESCE(SUM(d.importo),0) FROM donazione d WHERE d.id_pd = ?) WHERE id_pd = ?"
+        )->execute([$id, $id]);
     }
     header("Location: progetto_detail.php?id=$id&ok=1"); exit();
 }
@@ -59,10 +72,10 @@ $data_inizio = $p['data_i'] ? date('d M Y', strtotime($p['data_i'])) : '—';
 <div class="hero">
   <div class="hero-inner">
     <span class="stato-badge <?= $is_attivo ? 'stato-attivo' : 'stato-concluso' ?>">
-      <?= $is_attivo ? '🟢 Progetto attivo' : '⚫ Progetto concluso' ?>
+      <?= $is_attivo ? 'Progetto attivo' : 'Progetto concluso' ?>
     </span>
     <h1><?= htmlspecialchars($p['titolo']) ?></h1>
-    <p class="data-inizio">📅 Avviato il <?= $data_inizio ?></p>
+    <p class="data-inizio">Avviato il <?= $data_inizio ?></p>
 
     <!-- PROGRESS -->
     <div class="progress-box">
@@ -84,7 +97,7 @@ $data_inizio = $p['data_i'] ? date('d M Y', strtotime($p['data_i'])) : '—';
     <!-- DONAZIONE -->
     <?php if ($is_attivo): ?>
       <div class="dona-section">
-        <h3>💚 Sostieni questo progetto</h3>
+        <h3> Sostieni questo progetto</h3>
         <p>Il tuo contributo va direttamente alla ricerca e alla protezione degli ecosistemi marini.</p>
         <?php if (isset($_SESSION['id'])): ?>
           <form method="POST" class="dona-form" id="donaForm">
@@ -93,7 +106,7 @@ $data_inizio = $p['data_i'] ? date('d M Y', strtotime($p['data_i'])) : '—';
               <input type="number" name="importo" class="dona-input"
                      placeholder="10.00" min="1" max="10000" step="0.01" required>
             </div>
-            <button type="button" id="donaBtn" class="btn-dona">💚 Dona ora</button>
+            <button type="button" id="donaBtn" class="btn-dona"> Dona ora</button>
             <p class="hint">Min. €1 — Max. €10.000</p>
           </form>
         <?php else: ?>
@@ -103,7 +116,7 @@ $data_inizio = $p['data_i'] ? date('d M Y', strtotime($p['data_i'])) : '—';
         <?php endif; ?>
       </div>
     <?php else: ?>
-      <p style="color:var(--muted);font-size:.875rem;margin-top:1rem;">Questo progetto è concluso. Grazie a tutti i donatori! 🙏</p>
+      <p style="color:var(--muted);font-size:.875rem;margin-top:1rem;">Questo progetto è concluso. Grazie a tutti i donatori!</p>
     <?php endif; ?>
   </div>
 </div>
@@ -131,6 +144,12 @@ $data_inizio = $p['data_i'] ? date('d M Y', strtotime($p['data_i'])) : '—';
       <p class="dato-lbl">Completamento</p>
       <p class="dato-val"><?= $perc ?>%</p>
     </div>
+    <?php if (!empty($p['ente_nome'])): ?>
+    <div class="dato">
+      <p class="dato-lbl">Ente sponsor</p>
+      <p class="dato-val" style="font-size:.85rem;"><?= htmlspecialchars($p['ente_nome']) ?></p>
+    </div>
+    <?php endif; ?>
   </div>
 
   <!-- DESCRIZIONE OBIETTIVO -->
