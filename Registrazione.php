@@ -1,26 +1,19 @@
 <?php
-// ══════════════════════════════════════════
-//  Registrazione.php
-//  PROBLEMI RISOLTI:
-//  1. I nomi dei campi POST ora corrispondono al form
-//  2. Il submit fa davvero INSERT nel DB
-//  3. Dopo successo mostra la pagina di conferma
-// ══════════════════════════════════════════
+
 require 'config.php';
 
 $messaggio    = "";
-$tipo_msg     = ""; // "ok" o "err"
+$tipo_msg     = ""; //ok o err
 $registrato   = false;
-$tipo_account = $_GET['tipo'] ?? 'user'; // per pre-selezionare il tipo
+$tipo_account = $_GET['tipo'] ?? 'user';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    // Legge tutti i campi dal form
     $tipo      = $_POST["tipo"]     ?? "user";
     $nome      = trim($_POST["nome"]     ?? "");
     $cognome   = trim($_POST["cognome"]  ?? "");
     $username  = trim($_POST["username"] ?? "");
-    $email     = trim($_POST["email"]    ?? ""); // prima era "reg-email", ora corretto
+    $email     = trim($_POST["email"]    ?? ""); 
     $password  = $_POST["password"]      ?? "";
     $password2 = $_POST["password_confirm"] ?? "";
 
@@ -28,6 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($nome) || empty($username) || empty($email) || empty($password)) {
         $messaggio = "Compila tutti i campi obbligatori.";
         $tipo_msg  = "err";
+        //controllo formato dell'email
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $messaggio = "Email non valida.";
         $tipo_msg  = "err";
@@ -62,7 +56,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 $id_nuovo = $connessione->lastInsertId();
 
-                // Se è ricercatore → salva anche la richiesta
+                // Se è ricercatore salva anche la richiesta
                 if ($tipo === "ricercatore") {
                     $ente        = trim($_POST["ente"]        ?? "");
                     $qualifica   = trim($_POST["qualifica"]   ?? "");
@@ -88,7 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         $path_badge = $dest;
                     }
 
-                    // Salva richiesta ricercatore (adatta il nome tabella al tuo DB)
+                    // Salva richiesta ricercatore
                     try {
                         $qr = $connessione->prepare(
                             "INSERT INTO richiesta_ricercatore
@@ -97,13 +91,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         );
                         $qr->execute([$id_nuovo, $ente, $qualifica, $motivazione, $data_oggi]);
                     } catch (PDOException $e) {
-                        // Se la tabella non esiste ancora, va bene — l'utente è comunque stato creato
                         error_log("Richiesta ricercatore non salvata: " . $e->getMessage());
                     }
                 }
 
                 $registrato   = true;
-                $tipo_account = $tipo; // per personalizzare il messaggio di successo
+                $tipo_account = $tipo;
                 $messaggio    = "ok";
                 $tipo_msg     = "ok";
             }
@@ -132,7 +125,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <a href="Login.php" class="nav-back">← Hai già un account? Accedi</a>
 </nav>
 
-<!-- BARRA STEP -->
 <div class="progress-header">
   <div class="steps">
     <div class="step <?= $registrato ? 'done' : 'active' ?>" id="step-ind-0">
@@ -155,21 +147,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <div class="page-wrap">
 
 <?php if ($registrato): ?>
-  <!-- ══ STEP 2: SUCCESSO ══ -->
   <div class="success-card">
     <div class="big-icon"><?= $tipo_account === 'ricercatore' ? '⏳' : '✅' ?></div>
     <h2><?= $tipo_account === 'ricercatore' ? 'Richiesta inviata!' : 'Account creato!' ?></h2>
     <p>
       <?php if ($tipo_account === 'ricercatore'): ?>
         I tuoi documenti sono stati inviati all'amministratore per la verifica.
-        Riceverai una email con la OTP appena approvato (entro 48h).
       <?php else: ?>
         Il tuo account è attivo. Puoi subito accedere a NetSea e iniziare ad esplorare gli ecosistemi marini.
       <?php endif; ?>
     </p>
     <?php if ($tipo_account === 'ricercatore'): ?>
       <div class="note">
-        📧 Riceverai una email con la One-Time Password non appena l'admin avrà verificato i tuoi documenti (entro 48h).
       </div>
     <?php endif; ?>
     <a href="Login.php" class="btn-vai">Vai al login →</a>
@@ -177,12 +166,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <?php else: ?>
 
-  <!-- ══ ERRORE se c'è ══ -->
   <?php if ($tipo_msg === 'err' && $messaggio): ?>
     <div class="alert alert-err">❌ <?= htmlspecialchars($messaggio) ?></div>
   <?php endif; ?>
 
-  <!-- ══ STEP 0: TIPO ACCOUNT ══ -->
+  <!-- ══TIPO ACCOUNT ══ -->
   <div class="step-panel active" id="panel0">
     <h2 class="panel-title">Che tipo di account vuoi?</h2>
     <p class="panel-sub">Scegli in base al tuo ruolo. Puoi sempre richiedere l'upgrade a ricercatore in seguito.</p>
@@ -205,12 +193,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
   </div>
 
-  <!-- ══ STEP 1: FORM DATI ══ -->
+  <!-- ══+ FORM DATI ══ -->
   <div class="step-panel" id="panel1">
     <h2 class="panel-title" id="step1Title">Crea il tuo account</h2>
     <p class="panel-sub" id="step1Sub">Inserisci i tuoi dati. Potrai modificarli in qualsiasi momento dal profilo.</p>
 
-    <!-- ACTION = stesso file, METHOD POST, enctype per file upload -->
     <form id="regForm" action="Registrazione.php" method="POST" enctype="multipart/form-data">
       <input type="hidden" name="tipo" id="hiddenTipo" value="user">
 
@@ -251,7 +238,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <label>Email <span class="req">*</span></label>
         <div class="input-wrap">
           <span class="input-icon">✉️</span>
-          <!-- name="email" — ora corrisponde al PHP -->
           <input type="email" id="email" name="email"
                  value="<?= htmlspecialchars($_POST['email'] ?? '') ?>"
                  placeholder="mario@esempio.it" required>
@@ -263,7 +249,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <label>Password <span class="req">*</span></label>
         <div class="input-wrap">
           <span class="input-icon">🔒</span>
-          <!-- name="password" — ora corrisponde al PHP -->
           <input type="password" id="reg-pw" name="password"
                  placeholder="Min. 8 caratteri" required oninput="checkStrength(this.value)">
           <button type="button" class="pw-toggle" onclick="togglePw('reg-pw',this)">👁</button>
@@ -347,10 +332,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="info-box">
           <strong>⏳ Come funziona l'approvazione?</strong><br>
           1. Invii la richiesta con i documenti.<br>
-          2. L'amministratore verifica i dati (entro 48h).<br>
-          3. Se approvato, ricevi una <strong>One-Time Password</strong> via email.<br>
-          4. Accedi con la OTP e imposta la tua password definitiva.<br>
-          5. Il tuo account viene aggiornato al ruolo <strong>Ricercatore ✓</strong>.
+          2. L'amministratore verifica i dati.<br>
+          3. Se approvato  Il tuo account viene aggiornato al ruolo <strong>Ricercatore ✓</strong>.
         </div>
       </div>
 
@@ -366,7 +349,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
       </div>
 
-    </form><!-- /form — il bottone di sotto lo submetta con JS -->
+    </form>
 
     <div class="btn-row">
       <button class="btn-back" onclick="goStep(0)">← Indietro</button>
@@ -378,10 +361,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <?php endif; ?>
 
-</div><!-- /page-wrap -->
+</div>
 
 <script>
-/* CURSOR */
 const cur=document.getElementById('cursor'),ring=document.getElementById('cursorRing');
 let mx=0,my=0,rx=0,ry=0;
 document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.cssText=`left:${mx}px;top:${my}px`;});
@@ -390,7 +372,6 @@ document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.cs
 /* TIPO ACCOUNT */
 let selectedType = '<?= htmlspecialchars($_POST['tipo'] ?? ($tipo_account ?? 'user')) ?>';
 
-// Pre-seleziona da URL (?tipo=ricercatore)
 const urlParams = new URLSearchParams(location.search);
 if(urlParams.get('tipo')==='ricercatore') selectedType = 'ricercatore';
 
@@ -468,7 +449,7 @@ function showFileName(input,fnId,fuId){
   }
 }
 
-/* VALIDATE E SUBMIT REALE AL PHP */
+/* VALIDATE E SUBMIT */
 function validateAndSubmit(){
   let ok=true;
   document.querySelectorAll('.field-error').forEach(e=>e.style.display='none');
@@ -493,7 +474,6 @@ function validateAndSubmit(){
   }
   if(!ok) return;
 
-  // Tutto ok → submit reale del form al PHP
   document.getElementById('regForm').submit();
 }
 </script>

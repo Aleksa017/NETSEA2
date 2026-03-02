@@ -1,2 +1,0 @@
-# NETSEA2
-NETSI

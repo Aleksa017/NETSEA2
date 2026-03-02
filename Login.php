@@ -1,10 +1,9 @@
 <?php
 require 'config.php';
 
-// possibili URL di ritorno (solo percorsi relativi)
+// possibili URL di ritorno dopo il login 
 $redirect = '';
 if (!empty($_GET['redirect'])) {
-    // semplice sanitizzazione: permetti solo caratteri comuni e slash, punto e query
     $redirect = preg_replace('/[^A-Za-z0-9_\.\-\?=\&\/]/', '', $_GET['redirect']);
 }
 
@@ -129,11 +128,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
           <p>Richiedi l'accesso verificato per pubblicare contenuti scientifici</p>
         </div>
       </a>
-      <div class="demo-pill">
-        <strong>🧪 Account demo:</strong><br>
-        <span class="demo-account" onclick="fillDemo('ricerca@demo.it')">Ricercatore</span>
-        <br><small>password: <code>demo</code></small>
-      </div>
     </div>
   </div>
 </div>
@@ -142,10 +136,7 @@ const cursor=document.getElementById('cursor'),ring=document.getElementById('cur
 let mx=0,my=0,rx=0,ry=0;
 document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cursor.style.cssText=`left:${mx}px;top:${my}px`;});
 (function loop(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.cssText=`left:${rx}px;top:${ry}px`;requestAnimationFrame(loop);})();
-const bc=document.getElementById('bubbles');
-for(let i=0;i<14;i++){const b=document.createElement('div'),s=Math.random()*60+20;b.className='bubble';b.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*100}%;bottom:-${s}px;animation-duration:${Math.random()*12+8}s;animation-delay:${Math.random()*10}s`;bc.appendChild(b);}
 function togglePw(){const i=document.getElementById('password');i.type=i.type==='password'?'text':'password';}
-function fillDemo(e){document.getElementById('email').value=e;document.getElementById('password').value='demo';}
 document.getElementById('loginForm').addEventListener('submit',function(e){
   let ok=true;
   document.querySelectorAll('.field-error').forEach(el=>el.style.display='none');

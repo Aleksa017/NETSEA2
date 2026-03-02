@@ -4,6 +4,7 @@ require 'config.php';
 // ── Filtri lista ───────────────────────────────────────────────────────────
 $f_tipo   = trim($_GET['tipo']   ?? '');
 $f_oceano = trim($_GET['oceano'] ?? '');
+$f_paese  = (int)($_GET['paese']  ?? 0);
 $f_q      = trim($_GET['q']     ?? '');
 
 // ── Dettaglio singolo luogo ────────────────────────────────────────────────
@@ -45,6 +46,7 @@ if ($id) {
 $where = []; $params = [];
 if ($f_tipo)   { $where[] = 'l.tipo = ?';       $params[] = $f_tipo; }
 if ($f_oceano) { $where[] = 'l.oceano = ?';     $params[] = $f_oceano; }
+if ($f_paese)  { $where[] = 'l.id_paese = ?';  $params[] = $f_paese; }
 if ($f_q)      { $where[] = 'l.nome LIKE ?';    $params[] = '%'.$f_q.'%'; }
 
 $sql = "SELECT l.*, p.nome AS paese_nome,
@@ -62,6 +64,7 @@ $luoghi = $st->fetchAll();
 // Valori per i filtri
 $tipi   = $connessione->query("SELECT DISTINCT tipo FROM luogo WHERE tipo IS NOT NULL ORDER BY tipo")->fetchAll(PDO::FETCH_COLUMN);
 $oceani = $connessione->query("SELECT DISTINCT oceano FROM luogo WHERE oceano IS NOT NULL ORDER BY oceano")->fetchAll(PDO::FETCH_COLUMN);
+$paesi  = $connessione->query("SELECT p.id_paese, p.nome FROM paese p WHERE EXISTS(SELECT 1 FROM luogo l WHERE l.id_paese=p.id_paese) ORDER BY p.nome")->fetchAll();
 
 $badge_col = ['CR'=>'#e8836a','EN'=>'#e0a060','VU'=>'#f0c040','NT'=>'#c8a830','LC'=>'#2cb89b','DD'=>'#5d9ab8'];
 // Icone SVG inline per tipo (nessuna emoji)
@@ -291,7 +294,14 @@ $tipo_svg = [
       <?php endforeach; ?>
     </select>
 
-    <?php if($f_tipo||$f_oceano||$f_q): ?>
+    <select name="paese" onchange="this.form.submit()">
+      <option value="">Tutti i paesi</option>
+      <?php foreach($paesi as $p): ?>
+        <option value="<?= $p['id_paese'] ?>" <?= $f_paese==$p['id_paese']?'selected':'' ?>><?= htmlspecialchars($p['nome']) ?></option>
+      <?php endforeach; ?>
+    </select>
+
+    <?php if($f_tipo||$f_oceano||$f_paese||$f_q): ?>
       <a href="luoghi.php" class="btn-reset">Azzera</a>
     <?php endif; ?>
 
