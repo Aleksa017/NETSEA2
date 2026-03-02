@@ -30,8 +30,8 @@ try {
             SELECT n.id_news, n.titolo, LEFT(n.contenuto,150) AS contenuto, n.data_pub,
                    u.nome AS nome_autore, u.cognome AS cognome_autore
             FROM news n
-            JOIN ricercatore r ON n.id_ricercatore = r.id_ricercatore
-            JOIN utente u ON r.id_utente = u.id_utente
+            INNER JOIN ricercatore r ON n.id_ricercatore = r.id_ricercatore
+            Inner JOIN utente u ON r.id_utente = u.id_utente
             WHERE n.titolo LIKE ? OR n.contenuto LIKE ?
             ORDER BY n.data_pub DESC LIMIT 5
         ");
@@ -117,7 +117,7 @@ try {
         $st = $connessione->prepare("
             SELECT r.parametro, r.valore, r.data, l.nome AS luogo_nome, l.id_luogo
             FROM rilevazione_ambientale r
-            JOIN luogo l ON r.id_luogo = l.id_luogo
+            INNERJOIN luogo l ON r.id_luogo = l.id_luogo
             WHERE r.parametro LIKE ? OR l.nome LIKE ?
             ORDER BY r.data DESC LIMIT 4
         ");
