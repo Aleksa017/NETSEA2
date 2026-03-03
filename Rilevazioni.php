@@ -1,11 +1,11 @@
 <?php
 require 'config.php';
 
-// ── Filtri ─────────────────────────────────────────────────────────────────
+// ── Filtri 
 $id_luogo  = filter_input(INPUT_GET, 'luogo', FILTER_VALIDATE_INT) ?: null;
 $parametro = trim($_GET['param'] ?? '');
 
-// ── Luoghi che hanno dati ──────────────────────────────────────────────────
+// ── Luoghi che hanno dati
 $luoghi = $connessione->query("
     SELECT l.id_luogo, l.nome,
            COUNT(DISTINCT r.id_rilevazione) AS n_ril
@@ -14,14 +14,14 @@ $luoghi = $connessione->query("
     GROUP BY l.id_luogo ORDER BY l.nome
 ")->fetchAll();
 
-// ── Parametri disponibili ──────────────────────────────────────────────────
+// ── Parametri disponibili 
 $params_q = $id_luogo
     ? $connessione->prepare("SELECT DISTINCT parametro FROM rilevazione_ambientale WHERE id_luogo = ? ORDER BY parametro")
     : $connessione->prepare("SELECT DISTINCT parametro FROM rilevazione_ambientale ORDER BY parametro");
 if ($id_luogo) $params_q->execute([$id_luogo]); else $params_q->execute();
 $parametri_disponibili = $params_q->fetchAll(PDO::FETCH_COLUMN);
 
-// ── Rilevazioni filtrate ───────────────────────────────────────────────────
+// ── Rilevazioni filtrate
 $where = []; $params = [];
 if ($id_luogo)  { $where[] = 'r.id_luogo = ?';  $params[] = $id_luogo; }
 if ($parametro) { $where[] = 'r.parametro = ?'; $params[] = $parametro; }
@@ -39,10 +39,6 @@ $st = $connessione->prepare("
 $st->execute($params);
 $rilevazioni = $st->fetchAll();
 
-// ── Dati grafico — una serie per ogni combinazione luogo+parametro ────────
-// Quando non c'è filtro parametro mostriamo solo le serie di un parametro alla volta
-// per evitare grafici illeggibili con unità diverse sull'asse Y.
-// Se l'utente ha scelto un parametro specifico, mostriamo tutte le stazioni.
 $chart_series = []; // chiave: "LuogoNome — Parametro"
 foreach ($rilevazioni as $r) {
     if ($parametro) {
@@ -57,18 +53,6 @@ foreach ($rilevazioni as $r) {
 }
 foreach ($chart_series as &$s) usort($s, fn($a,$b)=>strcmp($a['x'],$b['x']));
 unset($s);
-
-// ── Ultima rilevazione per ogni luogo+parametro (riepilogo) ──────────────
-$ril_latest = $connessione->query("
-    SELECT r1.id_luogo, l.nome AS luogo_nome, r1.parametro, r1.valore, r1.data
-    FROM rilevazione_ambientale r1
-    INNER JOIN luogo l ON l.id_luogo = r1.id_luogo
-    WHERE r1.data = (
-        SELECT MAX(r2.data) FROM rilevazione_ambientale r2
-        WHERE r2.id_luogo=r1.id_luogo AND r2.parametro=r1.parametro
-    )
-    ORDER BY l.nome, r1.parametro
-")->fetchAll();
 
 // Descrizioni brevi dei parametri per aiutare l'utente
 $param_desc = [
@@ -231,25 +215,6 @@ if ($parametro && preg_match('/\(([^)]+)\)/', $parametro, $m)) $unita = $m[1];
   </div>
   <?php endif; ?>
 
-  <!-- Riepilogo ultime rilevazioni per stazione -->
-  <?php if (empty($id_luogo) && empty($parametro)): ?>
-  <p class="section-eyebrow">Ultime rilevazioni per stazione</p>
-  <div class="riepilogo-grid">
-    <?php foreach(array_slice($ril_latest, 0, 18) as $rl): ?>
-    <div class="rbox">
-      <div class="rbox-info">
-        <p class="rbox-param"><?= htmlspecialchars($rl['parametro']) ?></p>
-        <p class="rbox-luogo"><?= htmlspecialchars($rl['luogo_nome']) ?></p>
-        <p class="rbox-data"><?= date('d M Y', strtotime($rl['data'])) ?></p>
-      </div>
-      <div>
-        <p class="rbox-val"><?= number_format($rl['valore'],2,',','.') ?></p>
-      </div>
-    </div>
-    <?php endforeach; ?>
-  </div>
-  <?php endif; ?>
-
   <!-- Tabella dati -->
   <p class="section-eyebrow">Dati <?= $parametro ? htmlspecialchars($parametro) : ($id_luogo ? 'di '.htmlspecialchars($luogo_nome_sel) : 'recenti') ?></p>
   <?php if (empty($rilevazioni)): ?>
@@ -289,7 +254,7 @@ let mx=0,my=0,rx=0,ry=0;
 document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';cur.style.opacity='1';ring.style.opacity='1';});
 (function loop(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(loop);})();
 
-// ── Grafico ────────────────────────────────────────────────────────────────
+// ── Grafico 
 const rawData = <?= json_encode($chart_series) ?>;
 const ctx = document.getElementById('rilvChart');
 if (ctx && Object.keys(rawData).length) {

@@ -117,7 +117,7 @@ try {
         $st = $connessione->prepare("
             SELECT r.parametro, r.valore, r.data, l.nome AS luogo_nome, l.id_luogo
             FROM rilevazione_ambientale r
-            INNERJOIN luogo l ON r.id_luogo = l.id_luogo
+            INNER JOIN luogo l ON r.id_luogo = l.id_luogo
             WHERE r.parametro LIKE ? OR l.nome LIKE ?
             ORDER BY r.data DESC LIMIT 4
         ");
