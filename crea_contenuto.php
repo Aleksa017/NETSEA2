@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Carica un file oppure inserisci un URL.";
     }
 
-    // ── Gestione upload file ──────────────────────────────
+    // ── Gestione upload file
     if ($ha_file && empty($errors)) {
         $file = $_FILES['media_file'];
 
@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $url_finale = trim($_POST['url']);
     }
 
-    // ── Salva nel DB ──────────────────────────────────────
+    // ── Salva nel DB 
     if (empty($errors) && $url_finale !== '') {
         $stmt = $connessione->prepare(
             "INSERT INTO media (titolo, descrizione, url, data_pub, id_utente, visualizzazioni)

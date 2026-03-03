@@ -113,10 +113,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
           </div>
           <p class="field-error" id="err-password">Campo obbligatorio</p>
         </div>
-        <div class="form-row">
-          <label class="checkbox-wrap"><input type="checkbox" name="ricordami"> Ricordami</label>
-          
-        </div>
+   
         <button type="submit" class="btn-submit">Accedi →</button>
       </form>
       <div class="divider">oppure</div>
