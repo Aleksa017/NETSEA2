@@ -8,7 +8,6 @@ if (!isset($_SESSION['id'])) {
 $id_utente = (int)$_SESSION['id'];
 $errors = []; $success = false;
 
-// ── AZIONI POST ────────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
@@ -61,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// ── DATI UTENTE ────────────────────────────────────────────────────────────
+// DATI UTENTE 
 $st = $connessione->prepare("SELECT * FROM utente WHERE id_utente=?");
 $st->execute([$id_utente]); $utente = $st->fetch();
 if (!$utente) { header('Location: logout.php'); exit(); }
@@ -70,10 +69,10 @@ if (!$utente) { header('Location: logout.php'); exit(); }
 $st = $connessione->prepare("
     SELECT m.id_post, m.titolo, m.url, u.nome AS nome_pub, u.cognome AS cognome_pub
     FROM like_media lm
-    JOIN media m ON lm.id_post = m.id_post
+    INNER JOIN media m ON lm.id_post = m.id_post
     LEFT JOIN utente u ON m.id_utente = u.id_utente
     WHERE lm.id_utente = ?
-    ORDER BY m.data_pub DESC LIMIT 12");
+    ORDER BY m.data_pub DESC ");
 $st->execute([$id_utente]); $post_piaciuti = $st->fetchAll();
 ?>
 <!DOCTYPE html>

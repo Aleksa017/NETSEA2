@@ -20,6 +20,7 @@ if (isset($_GET['approva'])) {
     $req = $stmt->fetch();
     if ($req) {
         try {
+          //inizio la transizione di stato del db
             $connessione->beginTransaction();
             $check = $connessione->prepare("SELECT 1 FROM Ricercatore WHERE id_ricercatore = ?");
             $check->execute([$req['id_utente']]);
@@ -29,6 +30,7 @@ if (isset($_GET['approva'])) {
             }
             $connessione->prepare("UPDATE Richiesta_Ricercatore SET stato = 'approvato' WHERE id_richiesta = ?")
                 ->execute([$id_req]);
+                //salvo le modifiche al database e termino la transazione, se qualcosa va storto faccio un rollback
             $connessione->commit();
             header("Location: admin.php?msg=approvato"); exit();
         } catch (Exception $e) {
@@ -42,7 +44,7 @@ if (isset($_GET['approva'])) {
 $richieste = $connessione->query("
     SELECT r.*, u.nome, u.cognome
     FROM Richiesta_Ricercatore r
-    JOIN Utente u ON r.id_utente = u.id_utente
+    INNER JOIN Utente u ON r.id_utente = u.id_utente
     WHERE r.stato = 'in_attesa'
     ORDER BY r.id_richiesta DESC
 ")->fetchAll();

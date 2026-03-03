@@ -26,14 +26,14 @@ if ($q) {
   $stmt = $connessione->prepare("
     SELECT n.*, u.nome AS nome_autore, u.cognome AS cognome_autore
     FROM news n JOIN ricercatore r ON n.id_ricercatore = r.id_ricercatore
-    JOIN utente u ON r.id_ricercatore = u.id_utente
+    INNER JOIN utente u ON r.id_ricercatore = u.id_utente
     WHERE n.titolo LIKE ? OR n.contenuto LIKE ? ORDER BY n.data_pub DESC");
   $stmt->execute([$like, $like]);
 } else {
   $stmt = $connessione->query("
     SELECT n.*, u.nome AS nome_autore, u.cognome AS cognome_autore
-    FROM news n JOIN ricercatore r ON n.id_ricercatore = r.id_ricercatore
-    JOIN utente u ON r.id_ricercatore = u.id_utente ORDER BY n.data_pub DESC");
+    FROM news n INNER JOIN ricercatore r ON n.id_ricercatore = r.id_ricercatore
+    INNER JOIN utente u ON r.id_ricercatore = u.id_utente ORDER BY n.data_pub DESC");
 }
 $tutte_news = $stmt->fetchAll();
 ?>
@@ -106,7 +106,7 @@ $tutte_news = $stmt->fetchAll();
   <div class="news-grid">
     <?php foreach($tutte_news as $n):
       $data   = $n['data_pub'] ? date('d M Y', strtotime($n['data_pub'])) : '';
-      $autore = trim(($n['nome_autore']??'').' '.($n['cognome_autore']??''));
+      $autore = trim(($n['nome_autore']??'').' '.($n['cognome_autore']??'')); 
       $isImg  = !empty($n['copertina']) && preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $n['copertina']);
       $canDel = false;
       if (isset($_SESSION['id'])) {

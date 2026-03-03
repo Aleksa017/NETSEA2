@@ -34,8 +34,8 @@ if ($id) {
                    s.stato_conservazione, s.immagine, s.classe,
                    h.nome AS habitat_nome
             FROM habitat h
-            JOIN specie_habitat sh ON sh.id_habitat = h.id_habitat
-            JOIN specie s ON s.id_specie = sh.id_specie
+            INNER JOIN specie_habitat sh ON sh.id_habitat = h.id_habitat
+            INNER JOIN specie s ON s.id_specie = sh.id_specie
             WHERE h.id_luogo = ?
             ORDER BY s.nome");
         $st->execute([$id]); $specie_habitat = $st->fetchAll();

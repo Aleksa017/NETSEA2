@@ -28,8 +28,8 @@ try {
         SELECT n.id_news, n.titolo, n.data_pub,
                u.nome AS nome_autore, u.cognome AS cognome_autore
         FROM news n
-        JOIN ricercatore r ON n.id_ricercatore = r.id_ricercatore
-        JOIN utente u ON r.id_utente = u.id_utente
+        INNER JOIN ricercatore r ON n.id_ricercatore = r.id_ricercatore
+        INNER JOIN utente u ON r.id_utente = u.id_utente
         WHERE n.titolo LIKE ? OR n.contenuto LIKE ?
         ORDER BY n.data_pub DESC LIMIT 4
     ");
@@ -44,7 +44,7 @@ try {
     $st = $connessione->prepare("
         SELECT h.*, l.nome AS luogo_nome, l.id_luogo
         FROM specie_habitat sh
-        JOIN habitat h ON sh.id_habitat = h.id_habitat
+        INNER JOIN habitat h ON sh.id_habitat = h.id_habitat
         LEFT JOIN luogo l ON h.id_luogo = l.id_luogo
         WHERE sh.id_specie = ?
     ");
@@ -58,7 +58,7 @@ try {
     $st = $connessione->prepare("
         SELECT m.*
         FROM specie_minaccia sm
-        JOIN minaccia m ON sm.id_minaccia = m.id_minaccia
+        INNER JOIN minaccia m ON sm.id_minaccia = m.id_minaccia
         WHERE sm.id_specie = ?
         ORDER BY m.tipo
     ");

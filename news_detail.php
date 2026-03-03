@@ -7,8 +7,8 @@ if (!$id) { header("Location: news.php"); exit(); }
 $stmt = $connessione->prepare("
     SELECT n.*, u.nome AS nome_autore, u.cognome AS cognome_autore, r.qualifica, n.link_donazione, (SELECT COUNT(*) FROM visualizzazione_news vn WHERE vn.id_news = n.id_news) AS visualizzazioni
     FROM news n
-    JOIN ricercatore r ON n.id_ricercatore = r.id_ricercatore
-    JOIN utente u ON r.id_ricercatore = u.id_utente
+    INNER JOIN ricercatore r ON n.id_ricercatore = r.id_ricercatore
+    INNER JOIN utente u ON r.id_ricercatore = u.id_utente
     WHERE n.id_news = ?
 ");
 $stmt->execute([$id]);

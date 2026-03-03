@@ -3,20 +3,20 @@ require 'config.php';
 
 $utente_loggato = null;
 if (isset($_SESSION['id'])) {
-  // Popoliamo dati essenziali dall'array di sessione
+  // Popolo i dati essenziali dall'array di sessione
   $utente_loggato = [
     'nome'    => $_SESSION['nome']    ?? '',
     'cognome' => $_SESSION['cognome'] ?? '',
     'ruolo'   => $_SESSION['ruolo']   ?? 'utente',
     'foto'    => null,
   ];
-  // Proviamo a leggere il percorso della foto profilo dal DB (se presente)
+  // leggo il percorso della foto profilo dal DB (se presente)
   try {
     $stmt_u = $connessione->prepare('SELECT foto_profilo FROM utente WHERE id_utente = ?');
     $stmt_u->execute([ (int)$_SESSION['id'] ]);
     $r = $stmt_u->fetch();
     if ($r && !empty($r['foto_profilo'])) $utente_loggato['foto'] = $r['foto_profilo'];
-  } catch (Exception $e) { /* ignore */ }
+  } catch (Exception $e) { }
 }
 ?>
 
@@ -34,9 +34,7 @@ if (isset($_SESSION['id'])) {
 <div class="cursor" id="cursor" style="opacity:0;"></div>
 <div class="cursor-ring" id="cursorRing" style="opacity:0;"></div>
 
-<!-- ══════════════════════════════════════════
-     NAVBAR
-══════════════════════════════════════════ -->
+<!-- NAVBAR-->
 <nav id="navbar" class="nav-index">
   <a href="index.php" class="nav-logo">
     <img src="uploads/logos/logo.svg" alt="NetSea" style="height:56px;width:auto;object-fit:contain;display:block;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5));">
@@ -127,9 +125,7 @@ if (isset($_SESSION['id'])) {
   </div>
 </nav>
 
-<!-- ══════════════════════════════════════════
-     SEARCH OVERLAY
-══════════════════════════════════════════ -->
+<!-- SEARCH OVERLAY-->
 <div class="search-overlay" id="searchOverlay">
   <button class="search-close" onclick="closeSearch()">✕</button>
   <div class="search-overlay-inner">
@@ -139,9 +135,7 @@ if (isset($_SESSION['id'])) {
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════
-     HERO — NEWS CAROUSEL
-══════════════════════════════════════════ -->
+<!--NEWS CAROUSEL-->
 <?php
 // Ultime 8 news dal DB
 $grads = [
@@ -160,8 +154,8 @@ try {
         SELECT n.id_news, n.titolo, n.contenuto, n.copertina, n.data_pub,
                u.nome AS nome_autore, u.cognome AS cognome_autore, r.qualifica
         FROM news n
-        JOIN ricercatore r ON n.id_ricercatore = r.id_ricercatore
-        JOIN utente u ON r.id_ricercatore = u.id_utente
+        INNER JOIN ricercatore r ON n.id_ricercatore = r.id_ricercatore
+        INNER JOIN utente u ON r.id_ricercatore = u.id_utente
         ORDER BY n.data_pub DESC LIMIT 8
     ");
     $news_carousel = $stmt_news_car->fetchAll();
@@ -249,9 +243,7 @@ try {
 </div>
 
 <main>
-  <!-- ══════════════════════════════════════════
-       DONAZIONI
-  ══════════════════════════════════════════ -->
+  <!-- DONAZIONI-->
   <?php
   // Ultimi 10 progetti, raccolto dal campo diretto
   try {
@@ -281,7 +273,7 @@ try {
             'completato'=> 'background:linear-gradient(135deg,var(--ocean),var(--deep));',
             'attivo'    => 'background:linear-gradient(135deg,var(--ocean),var(--deep));',
         ];
-        $emojis_don = ['🌊','🪸','🦑','🐋','🧫','🔬','🐟','🌿','🐠','🐢'];
+        $emojis_don = ['🌊','','','🐋','🧫','🔬','🐟','🌿','🐠','🐢'];
         $badge_styles = [
             'urgente'   => 'background:rgba(224,90,58,.2);color:#e8836a;border-color:rgba(224,90,58,.3);',
             'completato'=> 'background:rgba(44,184,155,.15);color:#3dd4ae;border-color:rgba(44,184,155,.3);',
@@ -335,9 +327,7 @@ try {
     </div>
   </section>
 
-  <!-- ══════════════════════════════════════════
-       FEED — TikTok style
-  ══════════════════════════════════════════ -->
+  <!-- FEED-->
   <?php
   // Ultimi 8 contenuti dal DB
   try {
@@ -435,9 +425,7 @@ try {
   </div>
 </main>
 
-<!-- ══════════════════════════════════════════
-     FOOTER WAVE TRANSITION → SAND
-══════════════════════════════════════════ -->
+<!-- FOOTER WAVE TRANSITION → SAND -->
 <div class="wave-sep">
   <svg viewBox="0 0 1440 120" preserveAspectRatio="none" style="width:100%;height:120px;display:block;">
     <path d="M0,40 C180,80 360,0 540,40 C720,80 900,10 1080,40 C1260,70 1380,20 1440,40 L1440,120 L0,120 Z"
@@ -500,9 +488,7 @@ try {
 </footer>
 
 <script>
-/* ══════════════════════════════════════════
-   CURSOR
-══════════════════════════════════════════ */
+//cursore personalizzato
 const cursor = document.getElementById('cursor');
 const cursorRing = document.getElementById('cursorRing');
 let mx = 0, my = 0, rx = 0, ry = 0;
@@ -527,9 +513,7 @@ function animRing() {
 }
 animRing();
 
-/* ══════════════════════════════════════════
-   USER DROPDOWN
-══════════════════════════════════════════ */
+//dropdown dell'user
 function toggleDropdown(e) {
   e.stopPropagation();
   const drop = document.getElementById('userDropdown');
@@ -543,16 +527,12 @@ function closeAllDropdowns() {
 
 document.addEventListener('click', () => closeAllDropdowns());
 
-/* ══════════════════════════════════════════
-   NAVBAR SCROLL
-══════════════════════════════════════════ */
+//scroll della nav bar
 window.addEventListener('scroll', () => {
   document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
 });
 
-/* ══════════════════════════════════════════
-   CAROUSEL
-══════════════════════════════════════════ */
+//carousel
 const track = document.getElementById('carouselTrack');
 const dotsContainer = document.getElementById('carouselDots');
 const stripThumbs = document.querySelectorAll('.strip-thumb');
@@ -596,7 +576,6 @@ function resetAuto() {
   autoTimer = setInterval(() => moveTo(currentSlide + 1), 6000);
 }
 
-// Strip clicks
 stripThumbs.forEach(t => t.addEventListener('click', () => moveTo(+t.dataset.idx)));
 
 // Keyboard
@@ -616,10 +595,7 @@ track.addEventListener('touchend', e => {
 
 resetAuto();
 
-/* ══════════════════════════════════════════
-   SEARCH
-══════════════════════════════════════════ */
-// ── RICERCA REALE DAL DATABASE ──────────────────────────────────────────
+// ── RICERCA DAL DATABASE 
 let searchTimer = null;
 let lastQuery = '';
 
@@ -679,7 +655,7 @@ function renderRisultati(dati, query) {
   const box = document.getElementById('searchResults');
   let html = '';
 
-  // ── SCHEDA SPECIE ─────────────────────────────────────────────────────
+  // ── SCHEDA SPECIE 
   if (dati.specie) {
     const s = dati.specie;
     const stato = (s.stato_conservazione || '').toUpperCase();
@@ -713,7 +689,7 @@ function renderRisultati(dati, query) {
     </div>`;
   }
 
-  // ── ALTRE SPECIE ──────────────────────────────────────────────────────
+  // ── ALTRE SPECIE 
   const altreSpecie = (dati.specie_lista||[]).filter(s => !dati.specie || s.id_specie != dati.specie.id_specie);
   if (altreSpecie.length) {
     html += `<p style="font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:#5d9ab8;margin-bottom:.75rem;">🐠 Altre specie correlate</p>`;
@@ -734,7 +710,7 @@ function renderRisultati(dati, query) {
     html += '<div style="height:1rem;"></div>';
   }
 
-  // ── NEWS ──────────────────────────────────────────────────────────────
+  // ── NEWS 
   if (dati.news && dati.news.length) {
     html += `<p style="font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:#5d9ab8;margin-bottom:.75rem;">News correlate</p>`;
     dati.news.forEach(n => {
@@ -751,7 +727,7 @@ function renderRisultati(dati, query) {
     html += '<div style="height:1rem;"></div>';
   }
 
-  // ── MEDIA ─────────────────────────────────────────────────────────────
+  // ── MEDIA 
   if (dati.media && dati.media.length) {
     html += `<p style="font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:#5d9ab8;margin-bottom:.75rem;">🎬 Foto & Video</p>
     <div style="display:flex;flex-wrap:wrap;gap:.65rem;margin-bottom:1.5rem;">`;
@@ -765,7 +741,7 @@ function renderRisultati(dati, query) {
     html += '</div>';
   }
 
-  // ── DONAZIONI ─────────────────────────────────────────────────────────
+  // ── DONAZIONI 
   if (dati.donazioni && dati.donazioni.length) {
     html += `<p style="font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:#5d9ab8;margin-bottom:.75rem;">💚 Progetti correlati</p>`;
     dati.donazioni.forEach(d => {
@@ -780,7 +756,7 @@ function renderRisultati(dati, query) {
     });
   }
 
-  // ── HABITAT ───────────────────────────────────────────────────────────
+  // ── HABITAT 
   if (dati.habitat && dati.habitat.length) {
     html += `<p style="font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:#5d9ab8;margin-bottom:.75rem;">🏔️ Habitat correlati</p>`;
     dati.habitat.forEach(h => {
@@ -797,7 +773,7 @@ function renderRisultati(dati, query) {
     html += '<div style="height:.75rem;"></div>';
   }
 
-  // ── LUOGHI ────────────────────────────────────────────────────────────
+  // ── LUOGHI
   if (dati.luoghi && dati.luoghi.length) {
     html += `<p style="font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:#5d9ab8;margin-bottom:.75rem;">📍 Luoghi</p>`;
     const tipoIcon = {mare:'',golfo:'',stretto:'',fossa:'',arcipelago:'',canale:'',costa:'',laguna:''};
@@ -816,7 +792,7 @@ function renderRisultati(dati, query) {
     html += '<div style="height:.75rem;"></div>';
   }
 
-  // ── MINACCE ───────────────────────────────────────────────────────────
+  // ── MINACCE
   if (dati.minacce && dati.minacce.length) {
     html += `<p style="font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:#5d9ab8;margin-bottom:.75rem;">⚠️ Minacce ambientali</p>`;
     dati.minacce.forEach(m => {
@@ -832,7 +808,7 @@ function renderRisultati(dati, query) {
     });
   }
 
-  // ── RILEVAZIONI AMBIENTALI ──────────────────────────────────────────────
+  // ── RILEVAZIONI AMBIENTALI 
   if (dati.rilevazioni && dati.rilevazioni.length) {
     html += `<p style="font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:#5d9ab8;margin-bottom:.75rem;">📈 Rilevazioni ambientali</p>`;
     dati.rilevazioni.forEach(r => {
@@ -849,7 +825,7 @@ function renderRisultati(dati, query) {
     html += `<div style="height:.75rem;"></div>`;
   }
 
-  // ── NESSUN RISULTATO ──────────────────────────────────────────────────
+  // ── NESSUN RISULTATO 
   if (!html) {
     html = `<div style="text-align:center;padding:3rem;color:#5d9ab8;">
       <div style="margin-bottom:1rem;"><img src="logo.svg" style="height:48px;opacity:.3;filter:grayscale(1);"></div>
@@ -869,7 +845,7 @@ function formatDate(d) {
 }
 function sortResults() {}
 
-// ── MODAL FEED IN INDEX ───────────────────────────────────────────────────
+// ── MODAL FEED IN INDEX
 let indexModalPostId = null;
 
 function apriModalIndex(card) {
@@ -999,32 +975,13 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 
 
-
-
-
-/* ══════════════════════════════════════════
-   DONATION FILTERS
-══════════════════════════════════════════ */
-function filterDonations(filter, btn) {
-  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.donation-card').forEach(card => {
-    const stato = card.dataset.stato;
-    card.style.display = (filter === 'all' || stato === filter) ? 'block' : 'none';
-  });
-}
-
-/* ══════════════════════════════════════════
-   SCROLL ANIMATIONS
-══════════════════════════════════════════ */
+//animzione scrolling
 const observer = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
 }, { threshold: .15 });
 document.querySelectorAll('.anim').forEach(el => observer.observe(el));
 
-/* ══════════════════════════════════════════
-   PROGRESS BARS ANIMATE ON VISIBLE
-══════════════════════════════════════════ */
+//progress bar
 const progObserver = new IntersectionObserver(entries => {
   entries.forEach(e => {
     if (e.isIntersecting) {

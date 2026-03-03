@@ -10,7 +10,7 @@ $luoghi = $connessione->query("
     SELECT l.id_luogo, l.nome,
            COUNT(DISTINCT r.id_rilevazione) AS n_ril
     FROM luogo l
-    JOIN rilevazione_ambientale r ON r.id_luogo = l.id_luogo
+    INNER JOIN rilevazione_ambientale r ON r.id_luogo = l.id_luogo
     GROUP BY l.id_luogo ORDER BY l.nome
 ")->fetchAll();
 
@@ -62,7 +62,7 @@ unset($s);
 $ril_latest = $connessione->query("
     SELECT r1.id_luogo, l.nome AS luogo_nome, r1.parametro, r1.valore, r1.data
     FROM rilevazione_ambientale r1
-    JOIN luogo l ON l.id_luogo = r1.id_luogo
+    INNER JOIN luogo l ON l.id_luogo = r1.id_luogo
     WHERE r1.data = (
         SELECT MAX(r2.data) FROM rilevazione_ambientale r2
         WHERE r2.id_luogo=r1.id_luogo AND r2.parametro=r1.parametro
